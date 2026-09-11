@@ -1,0 +1,151 @@
+{
+  "$defs": {
+    "Exercise": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "theory",
+            "mechanism",
+            "design_decision",
+            "alternative_comparison",
+            "failure_mode",
+            "debugging",
+            "implementation",
+            "system_design",
+            "performance_evaluation",
+            "project_improvement",
+            "from_scratch",
+            "debug_broken",
+            "extend",
+            "optimize",
+            "mini_evaluation",
+            "ablation"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "prompt": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "evidence_produced": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Evidence Produced",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "prompt",
+        "evidence_produced"
+      ],
+      "title": "Exercise",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "node_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Node Id",
+      "type": "string"
+    },
+    "weakness": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Weakness",
+      "type": "string"
+    },
+    "evidence_from_interview": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence From Interview",
+      "type": "array"
+    },
+    "root_knowledge_gap": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Root Knowledge Gap",
+      "type": "string"
+    },
+    "gap_kind": {
+      "enum": [
+        "material_gap",
+        "mastery_gap"
+      ],
+      "title": "Gap Kind",
+      "type": "string"
+    },
+    "learning_objectives": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Learning Objectives",
+      "type": "array"
+    },
+    "exercises": {
+      "items": {
+        "$ref": "#/$defs/Exercise"
+      },
+      "title": "Exercises",
+      "type": "array"
+    },
+    "project_task": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Project Task",
+      "type": "string"
+    },
+    "retest_questions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Retest Questions",
+      "type": "array"
+    },
+    "mastery_criteria": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Mastery Criteria",
+      "type": "array"
+    },
+    "status": {
+      "default": "pending",
+      "enum": [
+        "pending",
+        "completed"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "node_id",
+    "weakness",
+    "evidence_from_interview",
+    "root_knowledge_gap",
+    "gap_kind",
+    "learning_objectives",
+    "exercises",
+    "project_task",
+    "retest_questions",
+    "mastery_criteria"
+  ],
+  "title": "StudyTask",
+  "type": "object"
+}

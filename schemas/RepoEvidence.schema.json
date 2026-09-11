@@ -1,0 +1,102 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "file_path": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "File Path",
+      "type": "string"
+    },
+    "symbol": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Symbol"
+    },
+    "line_start": {
+      "minimum": 1,
+      "title": "Line Start",
+      "type": "integer"
+    },
+    "line_end": {
+      "minimum": 1,
+      "title": "Line End",
+      "type": "integer"
+    },
+    "evidence_type": {
+      "enum": [
+        "implementation",
+        "test",
+        "documentation",
+        "config",
+        "dependency",
+        "evaluation"
+      ],
+      "title": "Evidence Type",
+      "type": "string"
+    },
+    "summary": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "excerpt": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Excerpt",
+      "type": "string"
+    },
+    "sha256": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Sha256",
+      "type": "string"
+    },
+    "confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "supports_claim": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Supports Claim",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "file_path",
+    "line_start",
+    "line_end",
+    "evidence_type",
+    "summary",
+    "excerpt",
+    "sha256",
+    "confidence"
+  ],
+  "title": "RepoEvidence",
+  "type": "object"
+}

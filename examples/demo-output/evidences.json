@@ -1,0 +1,77 @@
+[
+  {
+    "id": "e4fec31a00ed11c",
+    "file_path": "README.md",
+    "symbol": null,
+    "line_start": 1,
+    "line_end": 6,
+    "evidence_type": "documentation",
+    "summary": "Source excerpt (documentation); relevance is a search hypothesis",
+    "excerpt": "# Stock fixture\n\nRedis Lua performs a stock check and decrement. This fixture is intentionally incomplete:\nno idempotency key, order database, production deployment or benchmark. The resume's 40%\nimprovement is a deliberately unsupported claim for InterviewForge's evidence-boundary eval.\nDo not execute this fixture as a production service.",
+    "sha256": "c6e198fa1396b53344ca9e5a40a109222f821104779b0a489fb9f00014811acb",
+    "confidence": 0.4,
+    "supports_claim": [
+      "c2",
+      "c3",
+      "c5",
+      "c1",
+      "c4",
+      "c6",
+      "c8",
+      "c7"
+    ],
+    "limitations": [
+      "Static source observation; not runtime verification, ownership or measured improvement."
+    ]
+  },
+  {
+    "id": "ec796696445c541",
+    "file_path": "service.py",
+    "symbol": null,
+    "line_start": 1,
+    "line_end": 7,
+    "evidence_type": "implementation",
+    "summary": "Source excerpt (implementation); relevance is a search hypothesis",
+    "excerpt": "\"\"\"Illustrative caller; requires a caller-supplied Redis connection.\"\"\"\nfrom pathlib import Path\n\n\ndef reserve(redis_client, sku: str, amount: int):\n    lua = Path(__file__).with_name(\"stock.lua\").read_text()\n    return redis_client.eval(lua, 1, \"stock:\" + sku, amount)",
+    "sha256": "40e15391447f3736387c8671b63af61deb2938b48e501ffed0dbdd089753dbcb",
+    "confidence": 0.65,
+    "supports_claim": [
+      "c2",
+      "c3",
+      "c5",
+      "c1",
+      "c4",
+      "c6",
+      "c8",
+      "c7"
+    ],
+    "limitations": [
+      "Static source observation; not runtime verification, ownership or measured improvement."
+    ]
+  },
+  {
+    "id": "e6098a5520314a3",
+    "file_path": "stock.lua",
+    "symbol": null,
+    "line_start": 1,
+    "line_end": 11,
+    "evidence_type": "implementation",
+    "summary": "Source excerpt (implementation); relevance is a search hypothesis",
+    "excerpt": "-- Redis Lua: atomic check and decrement within one Redis execution context.\n-- Does not implement request deduplication, durable orders or failover guarantees.\nlocal amount = tonumber(ARGV[1])\nif amount == nil or amount <= 0 or amount ~= math.floor(amount) then\n    return redis.error_reply('invalid amount')\nend\nlocal stock = tonumber(redis.call('GET', KEYS[1]) or '0')\nif stock < amount then\n    return -1\nend\nreturn redis.call('DECRBY', KEYS[1], amount)",
+    "sha256": "0cc9efe91507c35f5c9479dde48a7da3a12993b44cc20e03e7e93e6f2118cc21",
+    "confidence": 0.65,
+    "supports_claim": [
+      "c2",
+      "c3",
+      "c5",
+      "c1",
+      "c4",
+      "c6",
+      "c8",
+      "c7"
+    ],
+    "limitations": [
+      "Static source observation; not runtime verification, ownership or measured improvement."
+    ]
+  }
+]

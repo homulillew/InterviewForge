@@ -1,0 +1,152 @@
+{
+  "$defs": {
+    "Dimension": {
+      "enum": [
+        "Problem Understanding",
+        "Mechanism Understanding",
+        "Technology Decision",
+        "Implementation / Engineering",
+        "Trade-off Awareness",
+        "Failure Handling",
+        "Evaluation / Measurement",
+        "Scaling",
+        "Ownership"
+      ],
+      "title": "Dimension",
+      "type": "string"
+    },
+    "MasteryState": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "default": "unknown",
+          "enum": [
+            "unknown",
+            "learning",
+            "needs_practice",
+            "interview_ready"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "assessed_by": {
+          "default": "none",
+          "enum": [
+            "none",
+            "heuristic",
+            "model",
+            "human_reviewer"
+          ],
+          "title": "Assessed By",
+          "type": "string"
+        }
+      },
+      "title": "MasteryState",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "statement_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Statement Id",
+      "type": "string"
+    },
+    "proposition": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Proposition",
+      "type": "string"
+    },
+    "dimension": {
+      "$ref": "#/$defs/Dimension"
+    },
+    "topic": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Topic",
+      "type": "string"
+    },
+    "project": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Project",
+      "type": "string"
+    },
+    "source_quote": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Source Quote",
+      "type": "string"
+    },
+    "risk_score": {
+      "default": 0,
+      "maximum": 100,
+      "minimum": 0,
+      "title": "Risk Score",
+      "type": "number"
+    },
+    "risk_factors": {
+      "additionalProperties": {
+        "maximum": 1,
+        "minimum": 0,
+        "type": "number"
+      },
+      "title": "Risk Factors",
+      "type": "object"
+    },
+    "risk_reasons": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Risk Reasons",
+      "type": "array"
+    },
+    "evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "answerability": {
+      "default": "unknown",
+      "enum": [
+        "unknown",
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "Answerability",
+      "type": "string"
+    },
+    "mastery": {
+      "$ref": "#/$defs/MasteryState"
+    }
+  },
+  "required": [
+    "id",
+    "statement_id",
+    "proposition",
+    "dimension",
+    "topic",
+    "project",
+    "source_quote"
+  ],
+  "title": "CapabilityClaim",
+  "type": "object"
+}

@@ -1,0 +1,316 @@
+[
+  {
+    "id": "c2",
+    "statement_id": "s1",
+    "proposition": "理解Redis Lua 并发库存扣减的核心机制及其保证边界",
+    "dimension": "Mechanism Understanding",
+    "topic": "Redis Lua 并发库存扣减",
+    "project": "秒杀库存服务",
+    "source_quote": "设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+    "risk_score": 90.0,
+    "risk_factors": {
+      "jd_relevance": 1.0,
+      "wording_strength": 1.0,
+      "metric_boldness": 1.0,
+      "engineering_complexity": 0.9,
+      "depth_potential": 1.0,
+      "ownership_ambiguity": 0.8,
+      "evidence_weakness": 0.6,
+      "interview_probability": 0.9
+    },
+    "risk_reasons": [
+      "jd_relevance=1.0",
+      "wording_strength=1.0",
+      "metric_boldness=1.0",
+      "engineering_complexity=0.9",
+      "depth_potential=1.0",
+      "ownership_ambiguity=0.8",
+      "interview_probability=0.9"
+    ],
+    "evidence_ids": [
+      "e4fec31a00ed11c",
+      "ec796696445c541",
+      "e6098a5520314a3"
+    ],
+    "answerability": "medium",
+    "mastery": {
+      "status": "unknown",
+      "evidence": [],
+      "assessed_by": "none"
+    }
+  },
+  {
+    "id": "c3",
+    "statement_id": "s1",
+    "proposition": "能够解释Redis Lua 并发库存扣减的选型依据及替代方案",
+    "dimension": "Technology Decision",
+    "topic": "Redis Lua 并发库存扣减",
+    "project": "秒杀库存服务",
+    "source_quote": "设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+    "risk_score": 90.0,
+    "risk_factors": {
+      "jd_relevance": 1.0,
+      "wording_strength": 1.0,
+      "metric_boldness": 1.0,
+      "engineering_complexity": 0.9,
+      "depth_potential": 1.0,
+      "ownership_ambiguity": 0.8,
+      "evidence_weakness": 0.6,
+      "interview_probability": 0.9
+    },
+    "risk_reasons": [
+      "jd_relevance=1.0",
+      "wording_strength=1.0",
+      "metric_boldness=1.0",
+      "engineering_complexity=0.9",
+      "depth_potential=1.0",
+      "ownership_ambiguity=0.8",
+      "interview_probability=0.9"
+    ],
+    "evidence_ids": [
+      "e4fec31a00ed11c",
+      "ec796696445c541",
+      "e6098a5520314a3"
+    ],
+    "answerability": "medium",
+    "mastery": {
+      "status": "unknown",
+      "evidence": [],
+      "assessed_by": "none"
+    }
+  },
+  {
+    "id": "c5",
+    "statement_id": "s1",
+    "proposition": "理解Redis Lua 并发库存扣减的故障模式、恢复与降级约束",
+    "dimension": "Failure Handling",
+    "topic": "Redis Lua 并发库存扣减",
+    "project": "秒杀库存服务",
+    "source_quote": "设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+    "risk_score": 90.0,
+    "risk_factors": {
+      "jd_relevance": 1.0,
+      "wording_strength": 1.0,
+      "metric_boldness": 1.0,
+      "engineering_complexity": 0.9,
+      "depth_potential": 1.0,
+      "ownership_ambiguity": 0.8,
+      "evidence_weakness": 0.6,
+      "interview_probability": 0.9
+    },
+    "risk_reasons": [
+      "jd_relevance=1.0",
+      "wording_strength=1.0",
+      "metric_boldness=1.0",
+      "engineering_complexity=0.9",
+      "depth_potential=1.0",
+      "ownership_ambiguity=0.8",
+      "interview_probability=0.9"
+    ],
+    "evidence_ids": [
+      "e4fec31a00ed11c",
+      "ec796696445c541",
+      "e6098a5520314a3"
+    ],
+    "answerability": "unknown",
+    "mastery": {
+      "status": "unknown",
+      "evidence": [],
+      "assessed_by": "none"
+    }
+  },
+  {
+    "id": "c1",
+    "statement_id": "s1",
+    "proposition": "能够解释Redis Lua 并发库存扣减所解决的问题、竞争条件或业务不变量",
+    "dimension": "Problem Understanding",
+    "topic": "Redis Lua 并发库存扣减",
+    "project": "秒杀库存服务",
+    "source_quote": "设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+    "risk_score": 86.2,
+    "risk_factors": {
+      "jd_relevance": 1.0,
+      "wording_strength": 1.0,
+      "metric_boldness": 1.0,
+      "engineering_complexity": 0.9,
+      "depth_potential": 0.7,
+      "ownership_ambiguity": 0.8,
+      "evidence_weakness": 0.6,
+      "interview_probability": 0.9
+    },
+    "risk_reasons": [
+      "jd_relevance=1.0",
+      "wording_strength=1.0",
+      "metric_boldness=1.0",
+      "engineering_complexity=0.9",
+      "ownership_ambiguity=0.8",
+      "interview_probability=0.9"
+    ],
+    "evidence_ids": [
+      "e4fec31a00ed11c",
+      "ec796696445c541",
+      "e6098a5520314a3"
+    ],
+    "answerability": "unknown",
+    "mastery": {
+      "status": "unknown",
+      "evidence": [],
+      "assessed_by": "none"
+    }
+  },
+  {
+    "id": "c4",
+    "statement_id": "s1",
+    "proposition": "能够解释Redis Lua 并发库存扣减在业务流程中的落地与接口边界",
+    "dimension": "Implementation / Engineering",
+    "topic": "Redis Lua 并发库存扣减",
+    "project": "秒杀库存服务",
+    "source_quote": "设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+    "risk_score": 86.2,
+    "risk_factors": {
+      "jd_relevance": 1.0,
+      "wording_strength": 1.0,
+      "metric_boldness": 1.0,
+      "engineering_complexity": 0.9,
+      "depth_potential": 0.7,
+      "ownership_ambiguity": 0.8,
+      "evidence_weakness": 0.6,
+      "interview_probability": 0.9
+    },
+    "risk_reasons": [
+      "jd_relevance=1.0",
+      "wording_strength=1.0",
+      "metric_boldness=1.0",
+      "engineering_complexity=0.9",
+      "ownership_ambiguity=0.8",
+      "interview_probability=0.9"
+    ],
+    "evidence_ids": [
+      "e4fec31a00ed11c",
+      "ec796696445c541",
+      "e6098a5520314a3"
+    ],
+    "answerability": "unknown",
+    "mastery": {
+      "status": "unknown",
+      "evidence": [],
+      "assessed_by": "none"
+    }
+  },
+  {
+    "id": "c6",
+    "statement_id": "s1",
+    "proposition": "能够设计验证Redis Lua 并发库存扣减正确性与性能的实验",
+    "dimension": "Evaluation / Measurement",
+    "topic": "Redis Lua 并发库存扣减",
+    "project": "秒杀库存服务",
+    "source_quote": "设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+    "risk_score": 86.2,
+    "risk_factors": {
+      "jd_relevance": 1.0,
+      "wording_strength": 1.0,
+      "metric_boldness": 1.0,
+      "engineering_complexity": 0.9,
+      "depth_potential": 0.7,
+      "ownership_ambiguity": 0.8,
+      "evidence_weakness": 0.6,
+      "interview_probability": 0.9
+    },
+    "risk_reasons": [
+      "jd_relevance=1.0",
+      "wording_strength=1.0",
+      "metric_boldness=1.0",
+      "engineering_complexity=0.9",
+      "ownership_ambiguity=0.8",
+      "interview_probability=0.9"
+    ],
+    "evidence_ids": [
+      "e4fec31a00ed11c",
+      "ec796696445c541",
+      "e6098a5520314a3"
+    ],
+    "answerability": "unknown",
+    "mastery": {
+      "status": "unknown",
+      "evidence": [],
+      "assessed_by": "none"
+    }
+  },
+  {
+    "id": "c8",
+    "statement_id": "s1",
+    "proposition": "能够解释自己在Redis Lua 并发库存扣减中的职责、决策与协作边界",
+    "dimension": "Ownership",
+    "topic": "Redis Lua 并发库存扣减",
+    "project": "秒杀库存服务",
+    "source_quote": "设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+    "risk_score": 86.2,
+    "risk_factors": {
+      "jd_relevance": 1.0,
+      "wording_strength": 1.0,
+      "metric_boldness": 1.0,
+      "engineering_complexity": 0.9,
+      "depth_potential": 0.7,
+      "ownership_ambiguity": 0.8,
+      "evidence_weakness": 0.6,
+      "interview_probability": 0.9
+    },
+    "risk_reasons": [
+      "jd_relevance=1.0",
+      "wording_strength=1.0",
+      "metric_boldness=1.0",
+      "engineering_complexity=0.9",
+      "ownership_ambiguity=0.8",
+      "interview_probability=0.9"
+    ],
+    "evidence_ids": [
+      "e4fec31a00ed11c",
+      "ec796696445c541",
+      "e6098a5520314a3"
+    ],
+    "answerability": "unknown",
+    "mastery": {
+      "status": "unknown",
+      "evidence": [],
+      "assessed_by": "none"
+    }
+  },
+  {
+    "id": "c7",
+    "statement_id": "s1",
+    "proposition": "能够解释Redis Lua 并发库存扣减在规模扩大后的瓶颈与扩展方式",
+    "dimension": "Scaling",
+    "topic": "Redis Lua 并发库存扣减",
+    "project": "秒杀库存服务",
+    "source_quote": "设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+    "risk_score": 82.5,
+    "risk_factors": {
+      "jd_relevance": 1.0,
+      "wording_strength": 1.0,
+      "metric_boldness": 1.0,
+      "engineering_complexity": 0.9,
+      "depth_potential": 0.7,
+      "ownership_ambiguity": 0.8,
+      "evidence_weakness": 0.6,
+      "interview_probability": 0.6
+    },
+    "risk_reasons": [
+      "jd_relevance=1.0",
+      "wording_strength=1.0",
+      "metric_boldness=1.0",
+      "engineering_complexity=0.9",
+      "ownership_ambiguity=0.8"
+    ],
+    "evidence_ids": [
+      "e4fec31a00ed11c",
+      "ec796696445c541",
+      "e6098a5520314a3"
+    ],
+    "answerability": "unknown",
+    "mastery": {
+      "status": "unknown",
+      "evidence": [],
+      "assessed_by": "none"
+    }
+  }
+]

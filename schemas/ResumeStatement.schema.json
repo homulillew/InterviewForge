@@ -1,0 +1,36 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "text": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "project": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Project",
+      "type": "string"
+    },
+    "line": {
+      "minimum": 1,
+      "title": "Line",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "id",
+    "text",
+    "project",
+    "line"
+  ],
+  "title": "ResumeStatement",
+  "type": "object"
+}

@@ -1,0 +1,542 @@
+[
+  {
+    "id": "t1",
+    "question": {
+      "id": "q1",
+      "claim_id": "c2",
+      "text": "为什么 Redis + Lua 能解决并发库存扣减的原子性问题？",
+      "dimension": "Mechanism Understanding",
+      "level": 2,
+      "depth": 0,
+      "subtopic": "mechanism",
+      "rationale": "首问验证简历能力主张",
+      "based_on_turn": null,
+      "expected_points": [
+        "原子",
+        "重试",
+        "边界",
+        "验证"
+      ]
+    },
+    "answer": {
+      "question_id": "q1",
+      "direct_interview_answer": "读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。\n\n选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n项目边界：当前项目材料可引用 [e6098a5520314a3]、[ec796696445c541]、[e4fec31a00ed11c]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。",
+      "evidence_selection": [
+        {
+          "evidence_id": "e6098a5520314a3",
+          "relevance_score": 31.931,
+          "reasons": [
+            "question terms: atomic, decrby, lua, redis, stock",
+            "claim terms: atomic, decrby, lua, redis, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "ec796696445c541",
+          "relevance_score": 23.466,
+          "reasons": [
+            "question terms: lua, redis, reserve, stock",
+            "claim terms: lua, redis, reserve, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "e4fec31a00ed11c",
+          "relevance_score": 12.0,
+          "reasons": [
+            "question terms: lua, redis, stock",
+            "claim terms: lua, redis, stock"
+          ]
+        }
+      ],
+      "evidence_ids": [
+        "e6098a5520314a3",
+        "ec796696445c541",
+        "e4fec31a00ed11c"
+      ],
+      "technical_explanation": "读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。",
+      "technology_decision": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "failure_modes": [
+        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+      ],
+      "unsupported_claims": [
+        "简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+        "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
+        "当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
+        "Redis 执行后客户端超时，如何避免重试导致重复扣减？"
+      ],
+      "related_knowledge": [
+        "Redis Lua 并发库存扣减",
+        "Race condition 与原子性边界"
+      ],
+      "improvement_directions": [
+        "改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。"
+      ],
+      "answerability": "medium",
+      "signals": [
+        "no_measurement"
+      ],
+      "provenance": "offline"
+    },
+    "kind": "simulation",
+    "weaknesses_observed": [
+      "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果"
+    ],
+    "new_knowledge_ids": [
+      "k0116430dc8d2",
+      "k72f53318cdcf"
+    ]
+  },
+  {
+    "id": "t2",
+    "question": {
+      "id": "q2",
+      "claim_id": "c2",
+      "text": "上一答提到“读库存、判断和扣减若分成多个请求，会出现交错执行”；如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
+      "dimension": "Evaluation / Measurement",
+      "level": 4,
+      "depth": 1,
+      "subtopic": "evaluation",
+      "rationale": "上一答信号 no_measurement；继续验证 evaluation",
+      "based_on_turn": "t1",
+      "expected_points": [
+        "原子",
+        "重试",
+        "边界",
+        "验证"
+      ]
+    },
+    "answer": {
+      "question_id": "q2",
+      "direct_interview_answer": "并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。\n\n选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n项目边界：当前项目材料可引用 [e6098a5520314a3]、[e4fec31a00ed11c]、[ec796696445c541]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。",
+      "evidence_selection": [
+        {
+          "evidence_id": "e6098a5520314a3",
+          "relevance_score": 11.466,
+          "reasons": [
+            "question terms: atomic",
+            "claim terms: atomic, decrby, lua, redis, stock"
+          ]
+        },
+        {
+          "evidence_id": "e4fec31a00ed11c",
+          "relevance_score": 8.079,
+          "reasons": [
+            "question terms: benchmark",
+            "claim terms: lua, redis, stock"
+          ]
+        },
+        {
+          "evidence_id": "ec796696445c541",
+          "relevance_score": 4.693,
+          "reasons": [
+            "claim terms: lua, redis, reserve, stock"
+          ]
+        }
+      ],
+      "evidence_ids": [
+        "e6098a5520314a3",
+        "e4fec31a00ed11c",
+        "ec796696445c541"
+      ],
+      "technical_explanation": "并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。",
+      "technology_decision": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "failure_modes": [
+        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+      ],
+      "unsupported_claims": [
+        "简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+        "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
+        "当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
+        "Redis 执行后客户端超时，如何避免重试导致重复扣减？"
+      ],
+      "related_knowledge": [
+        "Redis Lua 并发库存扣减",
+        "Race condition 与原子性边界"
+      ],
+      "improvement_directions": [
+        "改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。"
+      ],
+      "answerability": "medium",
+      "signals": [
+        "no_measurement"
+      ],
+      "provenance": "offline"
+    },
+    "kind": "simulation",
+    "weaknesses_observed": [
+      "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果"
+    ],
+    "new_knowledge_ids": [
+      "k0cde6ee95e39"
+    ]
+  },
+  {
+    "id": "t3",
+    "question": {
+      "id": "q3",
+      "claim_id": "c2",
+      "text": "上一答提到“并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境”；为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+      "dimension": "Technology Decision",
+      "level": 3,
+      "depth": 2,
+      "subtopic": "decision",
+      "rationale": "上一答信号 no_measurement；继续验证 decision",
+      "based_on_turn": "t2",
+      "expected_points": [
+        "原子",
+        "重试",
+        "边界",
+        "验证"
+      ]
+    },
+    "answer": {
+      "question_id": "q3",
+      "direct_interview_answer": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n项目边界：当前项目材料可引用 [e6098a5520314a3]、[ec796696445c541]、[e4fec31a00ed11c]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。",
+      "evidence_selection": [
+        {
+          "evidence_id": "e6098a5520314a3",
+          "relevance_score": 15.483,
+          "reasons": [
+            "question terms: lua, redis",
+            "claim terms: atomic, decrby, lua, redis, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "ec796696445c541",
+          "relevance_score": 13.366,
+          "reasons": [
+            "question terms: lua, redis",
+            "claim terms: lua, redis, reserve, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "e4fec31a00ed11c",
+          "relevance_score": 9.0,
+          "reasons": [
+            "question terms: lua, redis",
+            "claim terms: lua, redis, stock"
+          ]
+        }
+      ],
+      "evidence_ids": [
+        "e6098a5520314a3",
+        "ec796696445c541",
+        "e4fec31a00ed11c"
+      ],
+      "technical_explanation": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "technology_decision": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "failure_modes": [
+        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+      ],
+      "unsupported_claims": [
+        "简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+        "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
+        "当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
+        "Redis 执行后客户端超时，如何避免重试导致重复扣减？"
+      ],
+      "related_knowledge": [
+        "Redis Lua 并发库存扣减",
+        "Race condition 与原子性边界"
+      ],
+      "improvement_directions": [
+        "改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。"
+      ],
+      "answerability": "medium",
+      "signals": [
+        "no_measurement"
+      ],
+      "provenance": "offline"
+    },
+    "kind": "simulation",
+    "weaknesses_observed": [
+      "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果"
+    ],
+    "new_knowledge_ids": [
+      "k949b2bdaadf0"
+    ]
+  },
+  {
+    "id": "t4",
+    "question": {
+      "id": "q4",
+      "claim_id": "c2",
+      "text": "上一答提到“比较冲突率、业务事务边界和运维成本”；Redis 执行后客户端超时，如何避免重试导致重复扣减？",
+      "dimension": "Failure Handling",
+      "level": 5,
+      "depth": 3,
+      "subtopic": "failure",
+      "rationale": "上一答信号 no_measurement；继续验证 failure",
+      "based_on_turn": "t3",
+      "expected_points": [
+        "原子",
+        "重试",
+        "边界",
+        "验证"
+      ]
+    },
+    "answer": {
+      "question_id": "q4",
+      "direct_interview_answer": "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。 读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。\n\n选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n项目边界：当前项目材料可引用 [e6098a5520314a3]、[e4fec31a00ed11c]、[ec796696445c541]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。",
+      "evidence_selection": [
+        {
+          "evidence_id": "e6098a5520314a3",
+          "relevance_score": 11.733,
+          "reasons": [
+            "question terms: redis",
+            "claim terms: atomic, decrby, lua, redis, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "e4fec31a00ed11c",
+          "relevance_score": 11.079,
+          "reasons": [
+            "question terms: idempotency, redis",
+            "claim terms: lua, redis, stock"
+          ]
+        },
+        {
+          "evidence_id": "ec796696445c541",
+          "relevance_score": 9.616,
+          "reasons": [
+            "question terms: redis",
+            "claim terms: lua, redis, reserve, stock",
+            "artifact type relevant to question dimension"
+          ]
+        }
+      ],
+      "evidence_ids": [
+        "e6098a5520314a3",
+        "e4fec31a00ed11c",
+        "ec796696445c541"
+      ],
+      "technical_explanation": "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。 读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。",
+      "technology_decision": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "failure_modes": [
+        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+      ],
+      "unsupported_claims": [
+        "简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+        "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
+        "当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
+        "Redis 执行后客户端超时，如何避免重试导致重复扣减？"
+      ],
+      "related_knowledge": [
+        "Redis Lua 并发库存扣减",
+        "Race condition 与原子性边界"
+      ],
+      "improvement_directions": [
+        "改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。"
+      ],
+      "answerability": "medium",
+      "signals": [
+        "no_measurement"
+      ],
+      "provenance": "offline"
+    },
+    "kind": "simulation",
+    "weaknesses_observed": [
+      "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果"
+    ],
+    "new_knowledge_ids": [
+      "kbbcd50aea195"
+    ]
+  },
+  {
+    "id": "t5",
+    "question": {
+      "id": "q5",
+      "claim_id": "c2",
+      "text": "上一答提到“脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束”；库存检查和扣减分成两个请求，为什么会发生 race condition？",
+      "dimension": "Mechanism Understanding",
+      "level": 8,
+      "depth": 4,
+      "subtopic": "fundamentals",
+      "rationale": "上一答信号 no_measurement；继续验证 fundamentals",
+      "based_on_turn": "t4",
+      "expected_points": [
+        "原子",
+        "重试",
+        "边界",
+        "验证"
+      ]
+    },
+    "answer": {
+      "question_id": "q5",
+      "direct_interview_answer": "两个请求都读到同一份旧值再分别写回，会破坏业务不变量。同步必须覆盖完整的读—检查—写。原子性、隔离性和持久性是不同保证，不能由单条命令的原子性推导跨系统一致性。\n\n选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n项目边界：当前项目材料可引用 [e6098a5520314a3]、[ec796696445c541]、[e4fec31a00ed11c]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。",
+      "evidence_selection": [
+        {
+          "evidence_id": "e6098a5520314a3",
+          "relevance_score": 18.082,
+          "reasons": [
+            "question terms: decrby, stock",
+            "claim terms: atomic, decrby, lua, redis, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "ec796696445c541",
+          "relevance_score": 15.966,
+          "reasons": [
+            "question terms: reserve, stock",
+            "claim terms: lua, redis, reserve, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "e4fec31a00ed11c",
+          "relevance_score": 6.0,
+          "reasons": [
+            "question terms: stock",
+            "claim terms: lua, redis, stock"
+          ]
+        }
+      ],
+      "evidence_ids": [
+        "e6098a5520314a3",
+        "ec796696445c541",
+        "e4fec31a00ed11c"
+      ],
+      "technical_explanation": "两个请求都读到同一份旧值再分别写回，会破坏业务不变量。同步必须覆盖完整的读—检查—写。原子性、隔离性和持久性是不同保证，不能由单条命令的原子性推导跨系统一致性。",
+      "technology_decision": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "failure_modes": [
+        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+      ],
+      "unsupported_claims": [
+        "简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+        "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
+        "当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
+        "Redis 执行后客户端超时，如何避免重试导致重复扣减？"
+      ],
+      "related_knowledge": [
+        "Redis Lua 并发库存扣减",
+        "Race condition 与原子性边界"
+      ],
+      "improvement_directions": [
+        "改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。"
+      ],
+      "answerability": "medium",
+      "signals": [
+        "no_measurement"
+      ],
+      "provenance": "offline"
+    },
+    "kind": "simulation",
+    "weaknesses_observed": [
+      "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果"
+    ],
+    "new_knowledge_ids": []
+  },
+  {
+    "id": "t6",
+    "question": {
+      "id": "q6",
+      "claim_id": "c3",
+      "text": "上一答提到“两个请求都读到同一份旧值再分别写回，会破坏业务不变量”；结合刚才的边界，如果业务更重视持久化一致性而不是吞吐，你会如何重新选择Redis Lua 并发库存扣减的替代方案？",
+      "dimension": "Technology Decision",
+      "level": 3,
+      "depth": 0,
+      "subtopic": "decision",
+      "rationale": "上一答信号 no_measurement；继续验证 decision",
+      "based_on_turn": "t5",
+      "expected_points": [
+        "原子",
+        "重试",
+        "边界",
+        "验证"
+      ]
+    },
+    "answer": {
+      "question_id": "q6",
+      "direct_interview_answer": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n项目边界：当前项目材料可引用 [e6098a5520314a3]、[ec796696445c541]、[e4fec31a00ed11c]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。",
+      "evidence_selection": [
+        {
+          "evidence_id": "e6098a5520314a3",
+          "relevance_score": 31.931,
+          "reasons": [
+            "question terms: atomic, decrby, lua, redis, stock",
+            "claim terms: atomic, decrby, lua, redis, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "ec796696445c541",
+          "relevance_score": 23.466,
+          "reasons": [
+            "question terms: lua, redis, reserve, stock",
+            "claim terms: lua, redis, reserve, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "e4fec31a00ed11c",
+          "relevance_score": 12.0,
+          "reasons": [
+            "question terms: lua, redis, stock",
+            "claim terms: lua, redis, stock"
+          ]
+        }
+      ],
+      "evidence_ids": [
+        "e6098a5520314a3",
+        "ec796696445c541",
+        "e4fec31a00ed11c"
+      ],
+      "technical_explanation": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "technology_decision": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "failure_modes": [
+        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+      ],
+      "unsupported_claims": [
+        "简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+        "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
+        "当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
+        "Redis 执行后客户端超时，如何避免重试导致重复扣减？"
+      ],
+      "related_knowledge": [
+        "Redis Lua 并发库存扣减",
+        "Race condition 与原子性边界"
+      ],
+      "improvement_directions": [
+        "改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。"
+      ],
+      "answerability": "medium",
+      "signals": [
+        "no_measurement"
+      ],
+      "provenance": "offline"
+    },
+    "kind": "simulation",
+    "weaknesses_observed": [
+      "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果"
+    ],
+    "new_knowledge_ids": []
+  }
+]

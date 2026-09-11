@@ -1,0 +1,199 @@
+{
+  "$defs": {
+    "MasteryState": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "default": "unknown",
+          "enum": [
+            "unknown",
+            "learning",
+            "needs_practice",
+            "interview_ready"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "assessed_by": {
+          "default": "none",
+          "enum": [
+            "none",
+            "heuristic",
+            "model",
+            "human_reviewer"
+          ],
+          "title": "Assessed By",
+          "type": "string"
+        }
+      },
+      "title": "MasteryState",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "category": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Category",
+      "type": "string"
+    },
+    "priority": {
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "title": "Priority",
+      "type": "string"
+    },
+    "interview_distance": {
+      "maximum": 3,
+      "minimum": 0,
+      "title": "Interview Distance",
+      "type": "integer"
+    },
+    "source_claims": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Source Claims",
+      "type": "array"
+    },
+    "triggered_questions": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Triggered Questions",
+      "type": "array"
+    },
+    "project_anchors": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Project Anchors",
+      "type": "array"
+    },
+    "interview_one_liner": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Interview One Liner",
+      "type": "string"
+    },
+    "core_explanation": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Core Explanation",
+      "type": "string"
+    },
+    "key_mechanism": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Key Mechanism",
+      "type": "string"
+    },
+    "decision_logic": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Decision Logic",
+      "type": "string"
+    },
+    "failure_modes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Failure Modes",
+      "type": "array"
+    },
+    "alternatives": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Alternatives",
+      "type": "array"
+    },
+    "common_traps": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Common Traps",
+      "type": "array"
+    },
+    "likely_followups": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Likely Followups",
+      "type": "array"
+    },
+    "practice_questions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Practice Questions",
+      "type": "array"
+    },
+    "retest_questions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Retest Questions",
+      "type": "array"
+    },
+    "mastery": {
+      "$ref": "#/$defs/MasteryState"
+    },
+    "evidence": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "category",
+    "priority",
+    "interview_distance",
+    "source_claims",
+    "triggered_questions",
+    "project_anchors",
+    "interview_one_liner",
+    "core_explanation",
+    "key_mechanism",
+    "decision_logic",
+    "failure_modes",
+    "alternatives",
+    "common_traps",
+    "likely_followups",
+    "practice_questions",
+    "retest_questions"
+  ],
+  "title": "KnowledgeNode",
+  "type": "object"
+}

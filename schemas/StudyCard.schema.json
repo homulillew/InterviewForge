@@ -1,0 +1,45 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "node_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Node Id",
+      "type": "string"
+    },
+    "one_liner": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "One Liner",
+      "type": "string"
+    },
+    "explanation": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Explanation",
+      "type": "string"
+    },
+    "followups": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Followups",
+      "type": "array"
+    },
+    "time_minutes": {
+      "default": 5,
+      "maximum": 15,
+      "minimum": 1,
+      "title": "Time Minutes",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "node_id",
+    "one_liner",
+    "explanation",
+    "followups"
+  ],
+  "title": "StudyCard",
+  "type": "object"
+}

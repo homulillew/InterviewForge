@@ -1,0 +1,98 @@
+{
+  "$defs": {
+    "Dimension": {
+      "enum": [
+        "Problem Understanding",
+        "Mechanism Understanding",
+        "Technology Decision",
+        "Implementation / Engineering",
+        "Trade-off Awareness",
+        "Failure Handling",
+        "Evaluation / Measurement",
+        "Scaling",
+        "Ownership"
+      ],
+      "title": "Dimension",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "claim_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Claim Id",
+      "type": "string"
+    },
+    "text": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "dimension": {
+      "$ref": "#/$defs/Dimension"
+    },
+    "level": {
+      "maximum": 9,
+      "minimum": 0,
+      "title": "Level",
+      "type": "integer"
+    },
+    "depth": {
+      "maximum": 9,
+      "minimum": 0,
+      "title": "Depth",
+      "type": "integer"
+    },
+    "subtopic": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Subtopic",
+      "type": "string"
+    },
+    "rationale": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "based_on_turn": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Based On Turn"
+    },
+    "expected_points": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Expected Points",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "claim_id",
+    "text",
+    "dimension",
+    "level",
+    "depth",
+    "subtopic",
+    "rationale"
+  ],
+  "title": "InterviewQuestion",
+  "type": "object"
+}

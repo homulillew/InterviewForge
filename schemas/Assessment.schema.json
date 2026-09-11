@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "score": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Score",
+      "type": "number"
+    },
+    "missed_points": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Missed Points",
+      "type": "array"
+    },
+    "rationale": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "assessor": {
+      "enum": [
+        "heuristic",
+        "model",
+        "human_reviewer"
+      ],
+      "title": "Assessor",
+      "type": "string"
+    }
+  },
+  "required": [
+    "score",
+    "missed_points",
+    "rationale",
+    "assessor"
+  ],
+  "title": "Assessment",
+  "type": "object"
+}

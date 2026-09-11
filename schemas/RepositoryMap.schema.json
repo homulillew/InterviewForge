@@ -1,0 +1,76 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "root": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Root",
+      "type": "string"
+    },
+    "revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Revision"
+    },
+    "files": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "languages": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Languages",
+      "type": "object"
+    },
+    "sections": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "title": "Sections",
+      "type": "object"
+    },
+    "symbols": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "title": "Symbols",
+      "type": "object"
+    },
+    "skipped": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Skipped",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "root"
+  ],
+  "title": "RepositoryMap",
+  "type": "object"
+}

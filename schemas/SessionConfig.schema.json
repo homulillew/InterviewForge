@@ -1,0 +1,59 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "provider": {
+      "default": "offline",
+      "enum": [
+        "offline",
+        "compatible"
+      ],
+      "title": "Provider",
+      "type": "string"
+    },
+    "model": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model"
+    },
+    "base_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Base Url"
+    },
+    "max_turns": {
+      "default": 12,
+      "maximum": 100,
+      "minimum": 1,
+      "title": "Max Turns",
+      "type": "integer"
+    },
+    "max_depth": {
+      "default": 5,
+      "maximum": 10,
+      "minimum": 1,
+      "title": "Max Depth",
+      "type": "integer"
+    },
+    "deep_dive": {
+      "default": false,
+      "title": "Deep Dive",
+      "type": "boolean"
+    }
+  },
+  "title": "SessionConfig",
+  "type": "object"
+}

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "interview-forge"
+version = "0.2.0"
+description = "Evidence-grounded adversarial interviews and targeted learning"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = ["pydantic>=2.8,<3"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.9", "build>=1"]
+
+[project.scripts]
+interview-forge = "interview_forge.cli.main:main"
+
+[tool.setuptools.packages.find]
+include = ["interview_forge*"]
+
+[tool.setuptools.package-data]
+interview_forge = ["prompts/*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

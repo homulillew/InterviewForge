@@ -1,0 +1,59 @@
+{
+  "root": "/data/WSH/InterviewForge/examples/redis/repo",
+  "revision": null,
+  "files": [
+    "README.md",
+    "service.py",
+    "stock.lua"
+  ],
+  "languages": {
+    ".md": 1,
+    ".py": 1,
+    ".lua": 1
+  },
+  "sections": {
+    "README": [
+      "README.md"
+    ],
+    "Languages": [
+      ".lua",
+      ".md",
+      ".py"
+    ],
+    "Dependencies": [],
+    "Directory Structure": [
+      "."
+    ],
+    "Entry Points": [],
+    "Core Modules": [
+      "service.py",
+      "stock.lua"
+    ],
+    "Data Flow": [],
+    "API": [],
+    "Database": [],
+    "Config": [],
+    "Infrastructure": [],
+    "Tests": [],
+    "Evaluation": [],
+    "Deployment": [],
+    "Scripts": [],
+    "Observability": [],
+    "Performance": [
+      "README.md"
+    ]
+  },
+  "symbols": {
+    "README.md": [],
+    "service.py": [
+      "reserve"
+    ],
+    "stock.lua": []
+  },
+  "skipped": [],
+  "limitations": [
+    "Bounded static scan; omitted or unmatched code remains unverified.",
+    "Data Flow requires semantic inspection; file categories are search hints, not confirmed architecture.",
+    "Possible credentials are filtered heuristically; review inputs before using a remote provider."
+  ]
+}

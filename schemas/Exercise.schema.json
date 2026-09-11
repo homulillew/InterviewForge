@@ -1,0 +1,46 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "enum": [
+        "theory",
+        "mechanism",
+        "design_decision",
+        "alternative_comparison",
+        "failure_mode",
+        "debugging",
+        "implementation",
+        "system_design",
+        "performance_evaluation",
+        "project_improvement",
+        "from_scratch",
+        "debug_broken",
+        "extend",
+        "optimize",
+        "mini_evaluation",
+        "ablation"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "prompt": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Prompt",
+      "type": "string"
+    },
+    "evidence_produced": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Evidence Produced",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "prompt",
+    "evidence_produced"
+  ],
+  "title": "Exercise",
+  "type": "object"
+}

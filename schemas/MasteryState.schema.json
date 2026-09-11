@@ -1,0 +1,36 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "default": "unknown",
+      "enum": [
+        "unknown",
+        "learning",
+        "needs_practice",
+        "interview_ready"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "evidence": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "assessed_by": {
+      "default": "none",
+      "enum": [
+        "none",
+        "heuristic",
+        "model",
+        "human_reviewer"
+      ],
+      "title": "Assessed By",
+      "type": "string"
+    }
+  },
+  "title": "MasteryState",
+  "type": "object"
+}

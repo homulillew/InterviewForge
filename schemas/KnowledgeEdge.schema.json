@@ -1,0 +1,62 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Source",
+      "type": "string"
+    },
+    "target": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Target",
+      "type": "string"
+    },
+    "relation_type": {
+      "enum": [
+        "requires",
+        "explains",
+        "used_by",
+        "alternative_to",
+        "causes",
+        "mitigates",
+        "measured_by",
+        "scales_to",
+        "failure_of",
+        "derived_from_project",
+        "triggered_by_question"
+      ],
+      "title": "Relation Type",
+      "type": "string"
+    },
+    "provenance": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Provenance",
+      "type": "string"
+    },
+    "distance": {
+      "maximum": 3,
+      "minimum": 0,
+      "title": "Distance",
+      "type": "integer"
+    },
+    "confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    }
+  },
+  "required": [
+    "source",
+    "target",
+    "relation_type",
+    "provenance",
+    "distance",
+    "confidence"
+  ],
+  "title": "KnowledgeEdge",
+  "type": "object"
+}

@@ -1,0 +1,110 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "claim_coverage": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Claim Coverage",
+      "type": "object"
+    },
+    "strongly_defended_claims": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Strongly Defended Claims",
+      "type": "array"
+    },
+    "weakly_defended_claims": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Weakly Defended Claims",
+      "type": "array"
+    },
+    "unsupported_claims": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Unsupported Claims",
+      "type": "array"
+    },
+    "knowledge_gaps": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Knowledge Gaps",
+      "type": "array"
+    },
+    "engineering_gaps": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Engineering Gaps",
+      "type": "array"
+    },
+    "decision_making_gaps": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Decision Making Gaps",
+      "type": "array"
+    },
+    "failure_mode_gaps": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Failure Mode Gaps",
+      "type": "array"
+    },
+    "evaluation_gaps": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evaluation Gaps",
+      "type": "array"
+    },
+    "recommended_next_round": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Recommended Next Round",
+      "type": "array"
+    },
+    "study_tasks": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Study Tasks",
+      "type": "array"
+    },
+    "knowledge_graph_update": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Knowledge Graph Update",
+      "type": "array"
+    },
+    "interpretation": {
+      "default": "Simulation describes material answerability, not candidate mastery.",
+      "title": "Interpretation",
+      "type": "string"
+    }
+  },
+  "required": [
+    "claim_coverage",
+    "strongly_defended_claims",
+    "weakly_defended_claims",
+    "unsupported_claims",
+    "knowledge_gaps",
+    "engineering_gaps",
+    "decision_making_gaps",
+    "failure_mode_gaps",
+    "evaluation_gaps",
+    "recommended_next_round",
+    "study_tasks",
+    "knowledge_graph_update"
+  ],
+  "title": "PostInterviewReview",
+  "type": "object"
+}

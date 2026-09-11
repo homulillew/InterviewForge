@@ -1,0 +1,1494 @@
+{
+  "$defs": {
+    "Answer": {
+      "additionalProperties": false,
+      "properties": {
+        "question_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Question Id",
+          "type": "string"
+        },
+        "direct_interview_answer": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Direct Interview Answer",
+          "type": "string"
+        },
+        "evidence_selection": {
+          "items": {
+            "$ref": "#/$defs/EvidenceMatch"
+          },
+          "title": "Evidence Selection",
+          "type": "array"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "technical_explanation": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Technical Explanation",
+          "type": "string"
+        },
+        "technology_decision": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Technology Decision",
+          "type": "string"
+        },
+        "failure_modes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Failure Modes",
+          "type": "array"
+        },
+        "unsupported_claims": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unsupported Claims",
+          "type": "array"
+        },
+        "likely_followups": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Likely Followups",
+          "type": "array"
+        },
+        "related_knowledge": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Related Knowledge",
+          "type": "array"
+        },
+        "improvement_directions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Improvement Directions",
+          "type": "array"
+        },
+        "answerability": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Answerability",
+          "type": "string"
+        },
+        "signals": {
+          "items": {
+            "enum": [
+              "vague",
+              "api_only",
+              "no_implementation",
+              "no_decision",
+              "no_measurement",
+              "failure_gap",
+              "solid"
+            ],
+            "type": "string"
+          },
+          "title": "Signals",
+          "type": "array"
+        },
+        "provenance": {
+          "enum": [
+            "offline",
+            "model"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "question_id",
+        "direct_interview_answer",
+        "technical_explanation",
+        "technology_decision",
+        "failure_modes",
+        "unsupported_claims",
+        "likely_followups",
+        "related_knowledge",
+        "improvement_directions",
+        "answerability",
+        "signals",
+        "provenance"
+      ],
+      "title": "Answer",
+      "type": "object"
+    },
+    "Assessment": {
+      "additionalProperties": false,
+      "properties": {
+        "score": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Score",
+          "type": "number"
+        },
+        "missed_points": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missed Points",
+          "type": "array"
+        },
+        "rationale": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "assessor": {
+          "enum": [
+            "heuristic",
+            "model",
+            "human_reviewer"
+          ],
+          "title": "Assessor",
+          "type": "string"
+        }
+      },
+      "required": [
+        "score",
+        "missed_points",
+        "rationale",
+        "assessor"
+      ],
+      "title": "Assessment",
+      "type": "object"
+    },
+    "CapabilityClaim": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "statement_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Statement Id",
+          "type": "string"
+        },
+        "proposition": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Proposition",
+          "type": "string"
+        },
+        "dimension": {
+          "$ref": "#/$defs/Dimension"
+        },
+        "topic": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Topic",
+          "type": "string"
+        },
+        "project": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Project",
+          "type": "string"
+        },
+        "source_quote": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Source Quote",
+          "type": "string"
+        },
+        "risk_score": {
+          "default": 0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Risk Score",
+          "type": "number"
+        },
+        "risk_factors": {
+          "additionalProperties": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "title": "Risk Factors",
+          "type": "object"
+        },
+        "risk_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Risk Reasons",
+          "type": "array"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "answerability": {
+          "default": "unknown",
+          "enum": [
+            "unknown",
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Answerability",
+          "type": "string"
+        },
+        "mastery": {
+          "$ref": "#/$defs/MasteryState"
+        }
+      },
+      "required": [
+        "id",
+        "statement_id",
+        "proposition",
+        "dimension",
+        "topic",
+        "project",
+        "source_quote"
+      ],
+      "title": "CapabilityClaim",
+      "type": "object"
+    },
+    "Dimension": {
+      "enum": [
+        "Problem Understanding",
+        "Mechanism Understanding",
+        "Technology Decision",
+        "Implementation / Engineering",
+        "Trade-off Awareness",
+        "Failure Handling",
+        "Evaluation / Measurement",
+        "Scaling",
+        "Ownership"
+      ],
+      "title": "Dimension",
+      "type": "string"
+    },
+    "EvidenceMatch": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "relevance_score": {
+          "minimum": 0,
+          "title": "Relevance Score",
+          "type": "number"
+        },
+        "reasons": {
+          "items": {
+            "maxLength": 16000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Reasons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "relevance_score",
+        "reasons"
+      ],
+      "title": "EvidenceMatch",
+      "type": "object"
+    },
+    "Exercise": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "theory",
+            "mechanism",
+            "design_decision",
+            "alternative_comparison",
+            "failure_mode",
+            "debugging",
+            "implementation",
+            "system_design",
+            "performance_evaluation",
+            "project_improvement",
+            "from_scratch",
+            "debug_broken",
+            "extend",
+            "optimize",
+            "mini_evaluation",
+            "ablation"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "prompt": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "evidence_produced": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Evidence Produced",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "prompt",
+        "evidence_produced"
+      ],
+      "title": "Exercise",
+      "type": "object"
+    },
+    "InterviewQuestion": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "claim_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Claim Id",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "dimension": {
+          "$ref": "#/$defs/Dimension"
+        },
+        "level": {
+          "maximum": 9,
+          "minimum": 0,
+          "title": "Level",
+          "type": "integer"
+        },
+        "depth": {
+          "maximum": 9,
+          "minimum": 0,
+          "title": "Depth",
+          "type": "integer"
+        },
+        "subtopic": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Subtopic",
+          "type": "string"
+        },
+        "rationale": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "based_on_turn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Based On Turn"
+        },
+        "expected_points": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Expected Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "claim_id",
+        "text",
+        "dimension",
+        "level",
+        "depth",
+        "subtopic",
+        "rationale"
+      ],
+      "title": "InterviewQuestion",
+      "type": "object"
+    },
+    "InterviewTurn": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "question": {
+          "$ref": "#/$defs/InterviewQuestion"
+        },
+        "answer": {
+          "$ref": "#/$defs/Answer"
+        },
+        "kind": {
+          "const": "simulation",
+          "default": "simulation",
+          "title": "Kind",
+          "type": "string"
+        },
+        "weaknesses_observed": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Weaknesses Observed",
+          "type": "array"
+        },
+        "new_knowledge_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "New Knowledge Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "question",
+        "answer",
+        "weaknesses_observed"
+      ],
+      "title": "InterviewTurn",
+      "type": "object"
+    },
+    "KnowledgeEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Target",
+          "type": "string"
+        },
+        "relation_type": {
+          "enum": [
+            "requires",
+            "explains",
+            "used_by",
+            "alternative_to",
+            "causes",
+            "mitigates",
+            "measured_by",
+            "scales_to",
+            "failure_of",
+            "derived_from_project",
+            "triggered_by_question"
+          ],
+          "title": "Relation Type",
+          "type": "string"
+        },
+        "provenance": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Provenance",
+          "type": "string"
+        },
+        "distance": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Distance",
+          "type": "integer"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "relation_type",
+        "provenance",
+        "distance",
+        "confidence"
+      ],
+      "title": "KnowledgeEdge",
+      "type": "object"
+    },
+    "KnowledgeGraph": {
+      "additionalProperties": false,
+      "properties": {
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/KnowledgeNode"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/KnowledgeEdge"
+          },
+          "title": "Edges",
+          "type": "array"
+        }
+      },
+      "title": "KnowledgeGraph",
+      "type": "object"
+    },
+    "KnowledgeNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "category": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Category",
+          "type": "string"
+        },
+        "priority": {
+          "enum": [
+            "P0",
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "interview_distance": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Interview Distance",
+          "type": "integer"
+        },
+        "source_claims": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Claims",
+          "type": "array"
+        },
+        "triggered_questions": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Triggered Questions",
+          "type": "array"
+        },
+        "project_anchors": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Project Anchors",
+          "type": "array"
+        },
+        "interview_one_liner": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Interview One Liner",
+          "type": "string"
+        },
+        "core_explanation": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Core Explanation",
+          "type": "string"
+        },
+        "key_mechanism": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Key Mechanism",
+          "type": "string"
+        },
+        "decision_logic": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Decision Logic",
+          "type": "string"
+        },
+        "failure_modes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Failure Modes",
+          "type": "array"
+        },
+        "alternatives": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        },
+        "common_traps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Common Traps",
+          "type": "array"
+        },
+        "likely_followups": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Likely Followups",
+          "type": "array"
+        },
+        "practice_questions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Practice Questions",
+          "type": "array"
+        },
+        "retest_questions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Retest Questions",
+          "type": "array"
+        },
+        "mastery": {
+          "$ref": "#/$defs/MasteryState"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category",
+        "priority",
+        "interview_distance",
+        "source_claims",
+        "triggered_questions",
+        "project_anchors",
+        "interview_one_liner",
+        "core_explanation",
+        "key_mechanism",
+        "decision_logic",
+        "failure_modes",
+        "alternatives",
+        "common_traps",
+        "likely_followups",
+        "practice_questions",
+        "retest_questions"
+      ],
+      "title": "KnowledgeNode",
+      "type": "object"
+    },
+    "MasteryState": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "default": "unknown",
+          "enum": [
+            "unknown",
+            "learning",
+            "needs_practice",
+            "interview_ready"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "assessed_by": {
+          "default": "none",
+          "enum": [
+            "none",
+            "heuristic",
+            "model",
+            "human_reviewer"
+          ],
+          "title": "Assessed By",
+          "type": "string"
+        }
+      },
+      "title": "MasteryState",
+      "type": "object"
+    },
+    "PostInterviewReview": {
+      "additionalProperties": false,
+      "properties": {
+        "claim_coverage": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Claim Coverage",
+          "type": "object"
+        },
+        "strongly_defended_claims": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Strongly Defended Claims",
+          "type": "array"
+        },
+        "weakly_defended_claims": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Weakly Defended Claims",
+          "type": "array"
+        },
+        "unsupported_claims": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unsupported Claims",
+          "type": "array"
+        },
+        "knowledge_gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Knowledge Gaps",
+          "type": "array"
+        },
+        "engineering_gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Engineering Gaps",
+          "type": "array"
+        },
+        "decision_making_gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Decision Making Gaps",
+          "type": "array"
+        },
+        "failure_mode_gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Failure Mode Gaps",
+          "type": "array"
+        },
+        "evaluation_gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evaluation Gaps",
+          "type": "array"
+        },
+        "recommended_next_round": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Recommended Next Round",
+          "type": "array"
+        },
+        "study_tasks": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Study Tasks",
+          "type": "array"
+        },
+        "knowledge_graph_update": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Knowledge Graph Update",
+          "type": "array"
+        },
+        "interpretation": {
+          "default": "Simulation describes material answerability, not candidate mastery.",
+          "title": "Interpretation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "claim_coverage",
+        "strongly_defended_claims",
+        "weakly_defended_claims",
+        "unsupported_claims",
+        "knowledge_gaps",
+        "engineering_gaps",
+        "decision_making_gaps",
+        "failure_mode_gaps",
+        "evaluation_gaps",
+        "recommended_next_round",
+        "study_tasks",
+        "knowledge_graph_update"
+      ],
+      "title": "PostInterviewReview",
+      "type": "object"
+    },
+    "RepoEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "file_path": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "File Path",
+          "type": "string"
+        },
+        "symbol": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Symbol"
+        },
+        "line_start": {
+          "minimum": 1,
+          "title": "Line Start",
+          "type": "integer"
+        },
+        "line_end": {
+          "minimum": 1,
+          "title": "Line End",
+          "type": "integer"
+        },
+        "evidence_type": {
+          "enum": [
+            "implementation",
+            "test",
+            "documentation",
+            "config",
+            "dependency",
+            "evaluation"
+          ],
+          "title": "Evidence Type",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "excerpt": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Excerpt",
+          "type": "string"
+        },
+        "sha256": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Sha256",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "supports_claim": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supports Claim",
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "file_path",
+        "line_start",
+        "line_end",
+        "evidence_type",
+        "summary",
+        "excerpt",
+        "sha256",
+        "confidence"
+      ],
+      "title": "RepoEvidence",
+      "type": "object"
+    },
+    "RepositoryMap": {
+      "additionalProperties": false,
+      "properties": {
+        "root": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Root",
+          "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        },
+        "files": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Files",
+          "type": "array"
+        },
+        "languages": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Languages",
+          "type": "object"
+        },
+        "sections": {
+          "additionalProperties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": "Sections",
+          "type": "object"
+        },
+        "symbols": {
+          "additionalProperties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": "Symbols",
+          "type": "object"
+        },
+        "skipped": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Skipped",
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "root"
+      ],
+      "title": "RepositoryMap",
+      "type": "object"
+    },
+    "ResumeStatement": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "project": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Project",
+          "type": "string"
+        },
+        "line": {
+          "minimum": 1,
+          "title": "Line",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "project",
+        "line"
+      ],
+      "title": "ResumeStatement",
+      "type": "object"
+    },
+    "RetestAttempt": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "node_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Node Id",
+          "type": "string"
+        },
+        "question": {
+          "$ref": "#/$defs/InterviewQuestion"
+        },
+        "human_answer": {
+          "anyOf": [
+            {
+              "maxLength": 16000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Human Answer"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Answer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "assessment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Assessment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "node_id",
+        "question"
+      ],
+      "title": "RetestAttempt",
+      "type": "object"
+    },
+    "SessionConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "default": "offline",
+          "enum": [
+            "offline",
+            "compatible"
+          ],
+          "title": "Provider",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "base_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Base Url"
+        },
+        "max_turns": {
+          "default": 12,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Max Turns",
+          "type": "integer"
+        },
+        "max_depth": {
+          "default": 5,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Max Depth",
+          "type": "integer"
+        },
+        "deep_dive": {
+          "default": false,
+          "title": "Deep Dive",
+          "type": "boolean"
+        }
+      },
+      "title": "SessionConfig",
+      "type": "object"
+    },
+    "StudyCard": {
+      "additionalProperties": false,
+      "properties": {
+        "node_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Node Id",
+          "type": "string"
+        },
+        "one_liner": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "One Liner",
+          "type": "string"
+        },
+        "explanation": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "followups": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Followups",
+          "type": "array"
+        },
+        "time_minutes": {
+          "default": 5,
+          "maximum": 15,
+          "minimum": 1,
+          "title": "Time Minutes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "node_id",
+        "one_liner",
+        "explanation",
+        "followups"
+      ],
+      "title": "StudyCard",
+      "type": "object"
+    },
+    "StudyTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "node_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Node Id",
+          "type": "string"
+        },
+        "weakness": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Weakness",
+          "type": "string"
+        },
+        "evidence_from_interview": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence From Interview",
+          "type": "array"
+        },
+        "root_knowledge_gap": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Root Knowledge Gap",
+          "type": "string"
+        },
+        "gap_kind": {
+          "enum": [
+            "material_gap",
+            "mastery_gap"
+          ],
+          "title": "Gap Kind",
+          "type": "string"
+        },
+        "learning_objectives": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Learning Objectives",
+          "type": "array"
+        },
+        "exercises": {
+          "items": {
+            "$ref": "#/$defs/Exercise"
+          },
+          "title": "Exercises",
+          "type": "array"
+        },
+        "project_task": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Project Task",
+          "type": "string"
+        },
+        "retest_questions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Retest Questions",
+          "type": "array"
+        },
+        "mastery_criteria": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Mastery Criteria",
+          "type": "array"
+        },
+        "status": {
+          "default": "pending",
+          "enum": [
+            "pending",
+            "completed"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "node_id",
+        "weakness",
+        "evidence_from_interview",
+        "root_knowledge_gap",
+        "gap_kind",
+        "learning_objectives",
+        "exercises",
+        "project_task",
+        "retest_questions",
+        "mastery_criteria"
+      ],
+      "title": "StudyTask",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "status": {
+      "default": "ready",
+      "enum": [
+        "ready",
+        "running",
+        "paused",
+        "completed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "resume": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Resume",
+      "type": "string"
+    },
+    "jd": {
+      "default": "",
+      "title": "Jd",
+      "type": "string"
+    },
+    "config": {
+      "$ref": "#/$defs/SessionConfig"
+    },
+    "statements": {
+      "items": {
+        "$ref": "#/$defs/ResumeStatement"
+      },
+      "title": "Statements",
+      "type": "array"
+    },
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/CapabilityClaim"
+      },
+      "title": "Claims",
+      "type": "array"
+    },
+    "repository_map": {
+      "$ref": "#/$defs/RepositoryMap"
+    },
+    "evidences": {
+      "items": {
+        "$ref": "#/$defs/RepoEvidence"
+      },
+      "title": "Evidences",
+      "type": "array"
+    },
+    "transcript": {
+      "items": {
+        "$ref": "#/$defs/InterviewTurn"
+      },
+      "title": "Transcript",
+      "type": "array"
+    },
+    "knowledge_graph": {
+      "$ref": "#/$defs/KnowledgeGraph"
+    },
+    "study_cards": {
+      "items": {
+        "$ref": "#/$defs/StudyCard"
+      },
+      "title": "Study Cards",
+      "type": "array"
+    },
+    "study_plan": {
+      "items": {
+        "$ref": "#/$defs/StudyTask"
+      },
+      "title": "Study Plan",
+      "type": "array"
+    },
+    "retests": {
+      "items": {
+        "$ref": "#/$defs/RetestAttempt"
+      },
+      "title": "Retests",
+      "type": "array"
+    },
+    "review": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PostInterviewReview"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "stop_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Stop Reason"
+    }
+  },
+  "required": [
+    "id",
+    "resume",
+    "config",
+    "statements",
+    "claims",
+    "repository_map",
+    "evidences"
+  ],
+  "title": "InterviewSession",
+  "type": "object"
+}

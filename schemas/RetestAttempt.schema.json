@@ -1,0 +1,362 @@
+{
+  "$defs": {
+    "Answer": {
+      "additionalProperties": false,
+      "properties": {
+        "question_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Question Id",
+          "type": "string"
+        },
+        "direct_interview_answer": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Direct Interview Answer",
+          "type": "string"
+        },
+        "evidence_selection": {
+          "items": {
+            "$ref": "#/$defs/EvidenceMatch"
+          },
+          "title": "Evidence Selection",
+          "type": "array"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "technical_explanation": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Technical Explanation",
+          "type": "string"
+        },
+        "technology_decision": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Technology Decision",
+          "type": "string"
+        },
+        "failure_modes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Failure Modes",
+          "type": "array"
+        },
+        "unsupported_claims": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unsupported Claims",
+          "type": "array"
+        },
+        "likely_followups": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Likely Followups",
+          "type": "array"
+        },
+        "related_knowledge": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Related Knowledge",
+          "type": "array"
+        },
+        "improvement_directions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Improvement Directions",
+          "type": "array"
+        },
+        "answerability": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Answerability",
+          "type": "string"
+        },
+        "signals": {
+          "items": {
+            "enum": [
+              "vague",
+              "api_only",
+              "no_implementation",
+              "no_decision",
+              "no_measurement",
+              "failure_gap",
+              "solid"
+            ],
+            "type": "string"
+          },
+          "title": "Signals",
+          "type": "array"
+        },
+        "provenance": {
+          "enum": [
+            "offline",
+            "model"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "question_id",
+        "direct_interview_answer",
+        "technical_explanation",
+        "technology_decision",
+        "failure_modes",
+        "unsupported_claims",
+        "likely_followups",
+        "related_knowledge",
+        "improvement_directions",
+        "answerability",
+        "signals",
+        "provenance"
+      ],
+      "title": "Answer",
+      "type": "object"
+    },
+    "Assessment": {
+      "additionalProperties": false,
+      "properties": {
+        "score": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Score",
+          "type": "number"
+        },
+        "missed_points": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missed Points",
+          "type": "array"
+        },
+        "rationale": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "assessor": {
+          "enum": [
+            "heuristic",
+            "model",
+            "human_reviewer"
+          ],
+          "title": "Assessor",
+          "type": "string"
+        }
+      },
+      "required": [
+        "score",
+        "missed_points",
+        "rationale",
+        "assessor"
+      ],
+      "title": "Assessment",
+      "type": "object"
+    },
+    "Dimension": {
+      "enum": [
+        "Problem Understanding",
+        "Mechanism Understanding",
+        "Technology Decision",
+        "Implementation / Engineering",
+        "Trade-off Awareness",
+        "Failure Handling",
+        "Evaluation / Measurement",
+        "Scaling",
+        "Ownership"
+      ],
+      "title": "Dimension",
+      "type": "string"
+    },
+    "EvidenceMatch": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "relevance_score": {
+          "minimum": 0,
+          "title": "Relevance Score",
+          "type": "number"
+        },
+        "reasons": {
+          "items": {
+            "maxLength": 16000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Reasons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "relevance_score",
+        "reasons"
+      ],
+      "title": "EvidenceMatch",
+      "type": "object"
+    },
+    "InterviewQuestion": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "claim_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Claim Id",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "dimension": {
+          "$ref": "#/$defs/Dimension"
+        },
+        "level": {
+          "maximum": 9,
+          "minimum": 0,
+          "title": "Level",
+          "type": "integer"
+        },
+        "depth": {
+          "maximum": 9,
+          "minimum": 0,
+          "title": "Depth",
+          "type": "integer"
+        },
+        "subtopic": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Subtopic",
+          "type": "string"
+        },
+        "rationale": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "based_on_turn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Based On Turn"
+        },
+        "expected_points": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Expected Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "claim_id",
+        "text",
+        "dimension",
+        "level",
+        "depth",
+        "subtopic",
+        "rationale"
+      ],
+      "title": "InterviewQuestion",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "node_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Node Id",
+      "type": "string"
+    },
+    "question": {
+      "$ref": "#/$defs/InterviewQuestion"
+    },
+    "human_answer": {
+      "anyOf": [
+        {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Human Answer"
+    },
+    "reference": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Answer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "assessment": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Assessment"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "id",
+    "node_id",
+    "question"
+  ],
+  "title": "RetestAttempt",
+  "type": "object"
+}

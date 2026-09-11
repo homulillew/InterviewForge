@@ -1,0 +1,223 @@
+[
+  {
+    "id": "task-k0116430dc8d2",
+    "node_id": "k0116430dc8d2",
+    "weakness": "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果",
+    "evidence_from_interview": [
+      "t1"
+    ],
+    "root_knowledge_gap": "Redis Lua 并发库存扣减",
+    "gap_kind": "material_gap",
+    "learning_objectives": [
+      "读库存、判断和扣减若分成多个请求，会出现交错执行。",
+      "区分项目证据、技术假设与改进方向"
+    ],
+    "exercises": [
+      {
+        "kind": "mechanism",
+        "prompt": "为什么 Redis + Lua 能解决并发库存扣减的原子性问题？",
+        "evidence_produced": "一段脱离参考答案的解释，含机制、反例和边界"
+      },
+      {
+        "kind": "failure_mode",
+        "prompt": "对Redis Lua 并发库存扣减构造一个失败输入，解释状态变化，并给出可检查的不变量。",
+        "evidence_produced": "反例、预期状态、实际结果与原因"
+      },
+      {
+        "kind": "implementation",
+        "prompt": "针对Redis Lua 并发库存扣减，实现可复现并发扣减与超时重试测试，断言库存非负且同一请求最多扣减一次。",
+        "evidence_produced": "可运行测试、失败日志、修复说明与运行环境"
+      }
+    ],
+    "project_task": "为 Redis Lua 并发库存扣减 补充对应源码/测试/测量证据，注明能支持的 Claim：c2",
+    "retest_questions": [
+      "围绕Redis Lua 并发库存扣减，如何用一个具体反例说明机制的边界，并设计验证方法？",
+      "如果Redis Lua 并发库存扣减的关键前提不再成立，你会如何比较替代方案并验证选择？"
+    ],
+    "mastery_criteria": [
+      "脱稿说明核心机制",
+      "给出一个反例和保证边界",
+      "设计可复现验证",
+      "准确说明项目证据与个人职责"
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "task-k72f53318cdcf",
+    "node_id": "k72f53318cdcf",
+    "weakness": "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果",
+    "evidence_from_interview": [
+      "t1",
+      "t2",
+      "t3",
+      "t4",
+      "t5",
+      "t6"
+    ],
+    "root_knowledge_gap": "Race condition 与原子性边界",
+    "gap_kind": "material_gap",
+    "learning_objectives": [
+      "两个请求都读到同一份旧值再分别写回，会破坏业务不变量。",
+      "区分项目证据、技术假设与改进方向"
+    ],
+    "exercises": [
+      {
+        "kind": "mechanism",
+        "prompt": "为什么 Redis + Lua 能解决并发库存扣减的原子性问题？",
+        "evidence_produced": "一段脱离参考答案的解释，含机制、反例和边界"
+      },
+      {
+        "kind": "failure_mode",
+        "prompt": "对Race condition 与原子性边界构造一个失败输入，解释状态变化，并给出可检查的不变量。",
+        "evidence_produced": "反例、预期状态、实际结果与原因"
+      },
+      {
+        "kind": "implementation",
+        "prompt": "针对Race condition 与原子性边界，实现可复现并发扣减与超时重试测试，断言库存非负且同一请求最多扣减一次。",
+        "evidence_produced": "可运行测试、失败日志、修复说明与运行环境"
+      }
+    ],
+    "project_task": "为 Race condition 与原子性边界 补充对应源码/测试/测量证据，注明能支持的 Claim：c2, c3",
+    "retest_questions": [
+      "围绕Race condition 与原子性边界，如何用一个具体反例说明机制的边界，并设计验证方法？",
+      "如果Race condition 与原子性边界的关键前提不再成立，你会如何比较替代方案并验证选择？"
+    ],
+    "mastery_criteria": [
+      "脱稿说明核心机制",
+      "给出一个反例和保证边界",
+      "设计可复现验证",
+      "准确说明项目证据与个人职责"
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "task-k0cde6ee95e39",
+    "node_id": "k0cde6ee95e39",
+    "weakness": "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果",
+    "evidence_from_interview": [
+      "t2"
+    ],
+    "root_knowledge_gap": "Redis Lua 并发库存扣减：正确性与性能评测",
+    "gap_kind": "material_gap",
+    "learning_objectives": [
+      "并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。",
+      "区分项目证据、技术假设与改进方向"
+    ],
+    "exercises": [
+      {
+        "kind": "mechanism",
+        "prompt": "上一答提到“读库存、判断和扣减若分成多个请求，会出现交错执行”；如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
+        "evidence_produced": "一段脱离参考答案的解释，含机制、反例和边界"
+      },
+      {
+        "kind": "failure_mode",
+        "prompt": "对Redis Lua 并发库存扣减：正确性与性能评测构造一个失败输入，解释状态变化，并给出可检查的不变量。",
+        "evidence_produced": "反例、预期状态、实际结果与原因"
+      },
+      {
+        "kind": "implementation",
+        "prompt": "针对Redis Lua 并发库存扣减：正确性与性能评测，实现可复现并发扣减与超时重试测试，断言库存非负且同一请求最多扣减一次。",
+        "evidence_produced": "可运行测试、失败日志、修复说明与运行环境"
+      }
+    ],
+    "project_task": "为 Redis Lua 并发库存扣减：正确性与性能评测 补充对应源码/测试/测量证据，注明能支持的 Claim：c2",
+    "retest_questions": [
+      "围绕Redis Lua 并发库存扣减：正确性与性能评测，如何用一个具体反例说明机制的边界，并设计验证方法？",
+      "如果Redis Lua 并发库存扣减：正确性与性能评测的关键前提不再成立，你会如何比较替代方案并验证选择？"
+    ],
+    "mastery_criteria": [
+      "脱稿说明核心机制",
+      "给出一个反例和保证边界",
+      "设计可复现验证",
+      "准确说明项目证据与个人职责"
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "task-k949b2bdaadf0",
+    "node_id": "k949b2bdaadf0",
+    "weakness": "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果",
+    "evidence_from_interview": [
+      "t3",
+      "t6"
+    ],
+    "root_knowledge_gap": "Redis Lua 并发库存扣减：选型权衡",
+    "gap_kind": "material_gap",
+    "learning_objectives": [
+      "比较冲突率、业务事务边界和运维成本。",
+      "区分项目证据、技术假设与改进方向"
+    ],
+    "exercises": [
+      {
+        "kind": "mechanism",
+        "prompt": "上一答提到“并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境”；为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "evidence_produced": "一段脱离参考答案的解释，含机制、反例和边界"
+      },
+      {
+        "kind": "failure_mode",
+        "prompt": "对Redis Lua 并发库存扣减：选型权衡构造一个失败输入，解释状态变化，并给出可检查的不变量。",
+        "evidence_produced": "反例、预期状态、实际结果与原因"
+      },
+      {
+        "kind": "implementation",
+        "prompt": "针对Redis Lua 并发库存扣减：选型权衡，实现可复现并发扣减与超时重试测试，断言库存非负且同一请求最多扣减一次。",
+        "evidence_produced": "可运行测试、失败日志、修复说明与运行环境"
+      }
+    ],
+    "project_task": "为 Redis Lua 并发库存扣减：选型权衡 补充对应源码/测试/测量证据，注明能支持的 Claim：c2, c3",
+    "retest_questions": [
+      "围绕Redis Lua 并发库存扣减：选型权衡，如何用一个具体反例说明机制的边界，并设计验证方法？",
+      "如果Redis Lua 并发库存扣减：选型权衡的关键前提不再成立，你会如何比较替代方案并验证选择？"
+    ],
+    "mastery_criteria": [
+      "脱稿说明核心机制",
+      "给出一个反例和保证边界",
+      "设计可复现验证",
+      "准确说明项目证据与个人职责"
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "task-kbbcd50aea195",
+    "node_id": "kbbcd50aea195",
+    "weakness": "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果",
+    "evidence_from_interview": [
+      "t4"
+    ],
+    "root_knowledge_gap": "Redis Lua 并发库存扣减：故障边界",
+    "gap_kind": "material_gap",
+    "learning_objectives": [
+      "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。",
+      "区分项目证据、技术假设与改进方向"
+    ],
+    "exercises": [
+      {
+        "kind": "mechanism",
+        "prompt": "上一答提到“比较冲突率、业务事务边界和运维成本”；Redis 执行后客户端超时，如何避免重试导致重复扣减？",
+        "evidence_produced": "一段脱离参考答案的解释，含机制、反例和边界"
+      },
+      {
+        "kind": "failure_mode",
+        "prompt": "对Redis Lua 并发库存扣减：故障边界构造一个失败输入，解释状态变化，并给出可检查的不变量。",
+        "evidence_produced": "反例、预期状态、实际结果与原因"
+      },
+      {
+        "kind": "implementation",
+        "prompt": "针对Redis Lua 并发库存扣减：故障边界，实现可复现并发扣减与超时重试测试，断言库存非负且同一请求最多扣减一次。",
+        "evidence_produced": "可运行测试、失败日志、修复说明与运行环境"
+      }
+    ],
+    "project_task": "为 Redis Lua 并发库存扣减：故障边界 补充对应源码/测试/测量证据，注明能支持的 Claim：c2",
+    "retest_questions": [
+      "围绕Redis Lua 并发库存扣减：故障边界，如何用一个具体反例说明机制的边界，并设计验证方法？",
+      "如果Redis Lua 并发库存扣减：故障边界的关键前提不再成立，你会如何比较替代方案并验证选择？"
+    ],
+    "mastery_criteria": [
+      "脱稿说明核心机制",
+      "给出一个反例和保证边界",
+      "设计可复现验证",
+      "准确说明项目证据与个人职责"
+    ],
+    "status": "pending"
+  }
+]

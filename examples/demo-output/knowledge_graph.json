@@ -1,0 +1,316 @@
+{
+  "nodes": [
+    {
+      "id": "k0116430dc8d2",
+      "title": "Redis Lua 并发库存扣减",
+      "category": "redis",
+      "priority": "P0",
+      "interview_distance": 0,
+      "source_claims": [
+        "c2"
+      ],
+      "triggered_questions": [
+        "q1"
+      ],
+      "project_anchors": [
+        "秒杀库存服务: 设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。"
+      ],
+      "interview_one_liner": "读库存、判断和扣减若分成多个请求，会出现交错执行。",
+      "core_explanation": "读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。",
+      "key_mechanism": "读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。",
+      "decision_logic": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "failure_modes": [
+        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+      ],
+      "alternatives": [
+        "数据库乐观锁 / 条件 UPDATE",
+        "分布式锁",
+        "MQ 串行消费"
+      ],
+      "common_traps": [
+        "把局部技术保证外推成跨系统保证",
+        "把源码存在当作性能提升或个人掌握的证明"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？"
+      ],
+      "practice_questions": [
+        "为什么 Redis + Lua 能解决并发库存扣减的原子性问题？",
+        "请构造一个违反上述假设的边界案例，并解释修复条件。"
+      ],
+      "retest_questions": [
+        "围绕Redis Lua 并发库存扣减，如何用一个具体反例说明机制的边界，并设计验证方法？",
+        "如果Redis Lua 并发库存扣减的关键前提不再成立，你会如何比较替代方案并验证选择？"
+      ],
+      "mastery": {
+        "status": "unknown",
+        "evidence": [],
+        "assessed_by": "none"
+      },
+      "evidence": [
+        "e6098a5520314a3",
+        "ec796696445c541",
+        "e4fec31a00ed11c"
+      ]
+    },
+    {
+      "id": "k72f53318cdcf",
+      "title": "Race condition 与原子性边界",
+      "category": "redis",
+      "priority": "P0",
+      "interview_distance": 0,
+      "source_claims": [
+        "c2",
+        "c3"
+      ],
+      "triggered_questions": [
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5",
+        "q6"
+      ],
+      "project_anchors": [
+        "秒杀库存服务: 设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。"
+      ],
+      "interview_one_liner": "两个请求都读到同一份旧值再分别写回，会破坏业务不变量。",
+      "core_explanation": "两个请求都读到同一份旧值再分别写回，会破坏业务不变量。同步必须覆盖完整的读—检查—写。原子性、隔离性和持久性是不同保证，不能由单条命令的原子性推导跨系统一致性。",
+      "key_mechanism": "两个请求都读到同一份旧值再分别写回，会破坏业务不变量。同步必须覆盖完整的读—检查—写。原子性、隔离性和持久性是不同保证，不能由单条命令的原子性推导跨系统一致性。",
+      "decision_logic": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "failure_modes": [
+        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+      ],
+      "alternatives": [
+        "数据库乐观锁 / 条件 UPDATE",
+        "分布式锁",
+        "MQ 串行消费"
+      ],
+      "common_traps": [
+        "把局部技术保证外推成跨系统保证",
+        "把源码存在当作性能提升或个人掌握的证明"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？"
+      ],
+      "practice_questions": [
+        "为什么 Redis + Lua 能解决并发库存扣减的原子性问题？",
+        "请构造一个违反上述假设的边界案例，并解释修复条件。"
+      ],
+      "retest_questions": [
+        "围绕Race condition 与原子性边界，如何用一个具体反例说明机制的边界，并设计验证方法？",
+        "如果Race condition 与原子性边界的关键前提不再成立，你会如何比较替代方案并验证选择？"
+      ],
+      "mastery": {
+        "status": "unknown",
+        "evidence": [],
+        "assessed_by": "none"
+      },
+      "evidence": [
+        "e6098a5520314a3",
+        "ec796696445c541",
+        "e4fec31a00ed11c"
+      ]
+    },
+    {
+      "id": "k0cde6ee95e39",
+      "title": "Redis Lua 并发库存扣减：正确性与性能评测",
+      "category": "redis",
+      "priority": "P0",
+      "interview_distance": 0,
+      "source_claims": [
+        "c2"
+      ],
+      "triggered_questions": [
+        "q2"
+      ],
+      "project_anchors": [
+        "秒杀库存服务: 设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。"
+      ],
+      "interview_one_liner": "并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。",
+      "core_explanation": "并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。",
+      "key_mechanism": "读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。",
+      "decision_logic": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "failure_modes": [
+        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+      ],
+      "alternatives": [
+        "数据库乐观锁 / 条件 UPDATE",
+        "分布式锁",
+        "MQ 串行消费"
+      ],
+      "common_traps": [
+        "把局部技术保证外推成跨系统保证",
+        "把源码存在当作性能提升或个人掌握的证明"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？"
+      ],
+      "practice_questions": [
+        "上一答提到“读库存、判断和扣减若分成多个请求，会出现交错执行”；如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
+        "请构造一个违反上述假设的边界案例，并解释修复条件。"
+      ],
+      "retest_questions": [
+        "围绕Redis Lua 并发库存扣减：正确性与性能评测，如何用一个具体反例说明机制的边界，并设计验证方法？",
+        "如果Redis Lua 并发库存扣减：正确性与性能评测的关键前提不再成立，你会如何比较替代方案并验证选择？"
+      ],
+      "mastery": {
+        "status": "unknown",
+        "evidence": [],
+        "assessed_by": "none"
+      },
+      "evidence": [
+        "e6098a5520314a3",
+        "e4fec31a00ed11c",
+        "ec796696445c541"
+      ]
+    },
+    {
+      "id": "k949b2bdaadf0",
+      "title": "Redis Lua 并发库存扣减：选型权衡",
+      "category": "redis",
+      "priority": "P0",
+      "interview_distance": 0,
+      "source_claims": [
+        "c2",
+        "c3"
+      ],
+      "triggered_questions": [
+        "q3",
+        "q6"
+      ],
+      "project_anchors": [
+        "秒杀库存服务: 设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。"
+      ],
+      "interview_one_liner": "比较冲突率、业务事务边界和运维成本。",
+      "core_explanation": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "key_mechanism": "读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。",
+      "decision_logic": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "failure_modes": [
+        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+      ],
+      "alternatives": [
+        "数据库乐观锁 / 条件 UPDATE",
+        "分布式锁",
+        "MQ 串行消费"
+      ],
+      "common_traps": [
+        "把局部技术保证外推成跨系统保证",
+        "把源码存在当作性能提升或个人掌握的证明"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？"
+      ],
+      "practice_questions": [
+        "上一答提到“并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境”；为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "请构造一个违反上述假设的边界案例，并解释修复条件。"
+      ],
+      "retest_questions": [
+        "围绕Redis Lua 并发库存扣减：选型权衡，如何用一个具体反例说明机制的边界，并设计验证方法？",
+        "如果Redis Lua 并发库存扣减：选型权衡的关键前提不再成立，你会如何比较替代方案并验证选择？"
+      ],
+      "mastery": {
+        "status": "unknown",
+        "evidence": [],
+        "assessed_by": "none"
+      },
+      "evidence": [
+        "e6098a5520314a3",
+        "ec796696445c541",
+        "e4fec31a00ed11c"
+      ]
+    },
+    {
+      "id": "kbbcd50aea195",
+      "title": "Redis Lua 并发库存扣减：故障边界",
+      "category": "redis",
+      "priority": "P0",
+      "interview_distance": 0,
+      "source_claims": [
+        "c2"
+      ],
+      "triggered_questions": [
+        "q4"
+      ],
+      "project_anchors": [
+        "秒杀库存服务: 设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。"
+      ],
+      "interview_one_liner": "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。",
+      "core_explanation": "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。",
+      "key_mechanism": "读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。",
+      "decision_logic": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "failure_modes": [
+        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+      ],
+      "alternatives": [
+        "数据库乐观锁 / 条件 UPDATE",
+        "分布式锁",
+        "MQ 串行消费"
+      ],
+      "common_traps": [
+        "把局部技术保证外推成跨系统保证",
+        "把源码存在当作性能提升或个人掌握的证明"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？"
+      ],
+      "practice_questions": [
+        "上一答提到“比较冲突率、业务事务边界和运维成本”；Redis 执行后客户端超时，如何避免重试导致重复扣减？",
+        "请构造一个违反上述假设的边界案例，并解释修复条件。"
+      ],
+      "retest_questions": [
+        "围绕Redis Lua 并发库存扣减：故障边界，如何用一个具体反例说明机制的边界，并设计验证方法？",
+        "如果Redis Lua 并发库存扣减：故障边界的关键前提不再成立，你会如何比较替代方案并验证选择？"
+      ],
+      "mastery": {
+        "status": "unknown",
+        "evidence": [],
+        "assessed_by": "none"
+      },
+      "evidence": [
+        "e6098a5520314a3",
+        "e4fec31a00ed11c",
+        "ec796696445c541"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "k0116430dc8d2",
+      "target": "k72f53318cdcf",
+      "relation_type": "requires",
+      "provenance": "q1",
+      "distance": 1,
+      "confidence": 0.85
+    },
+    {
+      "source": "k0cde6ee95e39",
+      "target": "k72f53318cdcf",
+      "relation_type": "requires",
+      "provenance": "q2",
+      "distance": 1,
+      "confidence": 0.85
+    },
+    {
+      "source": "k949b2bdaadf0",
+      "target": "k72f53318cdcf",
+      "relation_type": "requires",
+      "provenance": "q3",
+      "distance": 1,
+      "confidence": 0.85
+    },
+    {
+      "source": "kbbcd50aea195",
+      "target": "k72f53318cdcf",
+      "relation_type": "requires",
+      "provenance": "q4",
+      "distance": 1,
+      "confidence": 0.85
+    }
+  ]
+}

@@ -12,7 +12,7 @@ def test_evidence_exact_linked_source(session):
         lines = path.read_text().splitlines()
         assert e.excerpt == "\n".join(lines[e.line_start-1:e.line_end])
         assert e.sha256 == hashlib.sha256(path.read_bytes()).hexdigest()
-        assert all(e.id in claims[c].evidence_ids for c in e.supports_claim)
+        assert all(e.id in claims[c].evidence_ids for c in e.related_claim_ids)
     assert session.repository_map.sections["Core Modules"]
 
 
@@ -44,6 +44,6 @@ def test_gitignore_and_snapshot_exclusion(tmp_path):
     out = tmp_path/"output"
     out.mkdir()
     (out/"report.md").write_text("redis")
-    _, claims = extract_claims("理解 Redis")
+    _, claims = extract_claims("使用 Redis 实现缓存")
     mapping, _ = scan_repository(tmp_path, claims, exclude=out)
     assert mapping.files == ["main.py"]

@@ -34,7 +34,7 @@ def terms(text):
 
 
 def select_evidence(question, claim, evidences, max_chars=10000, max_items=8):
-    candidates = [e for e in evidences if claim.id in e.supports_claim]
+    candidates = [e for e in evidences if claim.id in e.related_claim_ids]
     primary = question.text.split("”；", 1)[-1]
     query = terms(primary + " " + question.subtopic)
     context = terms(claim.source_quote + " " + claim.topic)

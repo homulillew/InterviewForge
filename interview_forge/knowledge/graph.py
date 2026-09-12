@@ -1,11 +1,13 @@
 import hashlib
+from interview_forge.knowledge.compress import canonical_title
+from interview_forge.schemas.models import FollowupQA
 from interview_forge.curricula import TOPICS, topic_for
 from interview_forge.llm import LLMClient, prompt
 from interview_forge.schemas.models import KnowledgeEdge, KnowledgeGraph, KnowledgeNode, MasteryState, Model
 
 
 def node_id(title: str) -> str:
-    return "k" + hashlib.sha256(title.strip().casefold().encode()).hexdigest()[:12]
+    return "k" + hashlib.sha256(canonical_title(title).casefold().encode()).hexdigest()[:12]
 
 
 class KnowledgeBatch(Model):
@@ -25,6 +27,9 @@ def extract_knowledge(claim, turn, client: LLMClient | None = None) -> Knowledge
         for n in result.nodes:
             for text in (n.interview_one_liner, n.core_explanation, n.key_mechanism, n.decision_logic):
                 check_general_knowledge(text)
+            n.title = canonical_title(n.title)
+            if not n.followup_qa:
+                raise ValueError("Knowledge nodes require answered follow-up questions")
             n.source_claims = [claim.id]
             n.triggered_questions = [turn.question.id]
             n.project_anchors = [claim.project + ": " + claim.source_quote]
@@ -34,22 +39,22 @@ def extract_knowledge(claim, turn, client: LLMClient | None = None) -> Knowledge
         return result
     topic = TOPICS[topic_for(claim.topic)]
     subtopic = turn.question.subtopic
-    contents = {
-        "mechanism": (topic.title, topic.mechanism),
-        "decision": (topic.title + "：选型权衡", topic.decision),
-        "evaluation": (topic.title + "：正确性与性能评测", topic.validation),
-        "failure": (topic.title + "：故障边界", topic.failure),
-        "fundamentals": (topic.prerequisite, topic.prerequisite_explanation),
-        "scaling": (topic.title + "：容量与尾延迟", "先通过负载曲线定位资源饱和点，再讨论缓存、分片与异步化；分别报告正确性保证和容量变化。"),
-        "implementation": (topic.title + "：业务落地", "将输入、状态变化、异常分支和外部依赖串成一条请求路径；逐一标记源码已经支持的事实与需要实验验证的结论。"),
-        "ownership": (topic.title + "：个人职责边界", "把个人决策、实现、测试与团队既有组件分别说明；只将可核实的贡献写成个人经历。"),
-        "debugging": (topic.title + "：故障定位", "按请求链路建立假设，用日志、指标或受控实验逐步排除；先限制影响范围，再验证根因。"),
-        "counterfactual": (topic.title + "：替代设计", topic.decision),
-        "clarification": (topic.title + "：状态与不变量", topic.mechanism),
-    }
-    title, explanation = contents.get(subtopic, contents["mechanism"])
+    primary = canonical_title(topic.title)
+    if subtopic == "evaluation":
+        primary, explanation = "受控基线与性能测量", topic.validation
+    elif subtopic == "decision" or subtopic == "counterfactual":
+        primary, explanation = "复杂度与一致性约束" if topic_for(claim.topic) != "rag" else "检索质量与延迟预算", topic.decision
+    elif subtopic in {"failure", "debugging"}:
+        primary, explanation = "幂等性与至少一次执行" if topic_for(claim.topic) != "rag" else "两阶段检索与候选集上限", topic.failure
+    elif subtopic == "scaling":
+        primary, explanation = "资源饱和与尾延迟", "固定资源逐步增加负载，寻找排队和饱和拐点；分别验证容量与正确性，保留资源配置和负载模型。"
+    elif subtopic == "fundamentals":
+        primary, explanation = canonical_title(topic.prerequisite), topic.prerequisite_explanation
+    else:
+        explanation = topic.mechanism
+    title = primary
     nodes = []
-    for index, (name, body) in enumerate([(title, explanation), (topic.prerequisite, topic.prerequisite_explanation)]):
+    for index, (name, body) in enumerate([(title, explanation), (canonical_title(topic.prerequisite), topic.prerequisite_explanation)]):
         if any(n.title == name for n in nodes):
             continue
         nodes.append(KnowledgeNode(id=node_id(name), title=name, category=topic_for(claim.topic),
@@ -64,7 +69,9 @@ def extract_knowledge(claim, turn, client: LLMClient | None = None) -> Knowledge
             practice_questions=[turn.question.text, "请构造一个违反上述假设的边界案例，并解释修复条件。"],
             retest_questions=[f"围绕{name}，如何用一个具体反例说明机制的边界，并设计验证方法？",
                               f"如果{name}的关键前提不再成立，你会如何比较替代方案并验证选择？"],
-            evidence=turn.answer.evidence_ids))
+            evidence=turn.answer.evidence_ids,
+            followup_qa=[FollowupQA(question=f"{name}的关键边界是什么？", answer=topic.failure),
+                FollowupQA(question=f"如何验证{name}对应的结论？", answer=topic.validation)]))
     edges = []
     if len(nodes) == 2:
         edges.append(KnowledgeEdge(source=nodes[0].id, target=nodes[1].id, relation_type="requires",
@@ -75,22 +82,25 @@ def extract_knowledge(claim, turn, client: LLMClient | None = None) -> Knowledge
 def merge_graph(graph: KnowledgeGraph, batch: KnowledgeBatch) -> tuple[KnowledgeGraph, list[str]]:
     # Canonicalize by normalized title; merge provenance rather than duplicating shared concepts.
     existing = {n.id: n.model_copy(deep=True) for n in graph.nodes}
-    titles = {n.title.strip().casefold(): n.id for n in graph.nodes}
+    titles = {canonical_title(n.title).casefold(): n.id for n in graph.nodes}
     remap = {}
     added = []
     for node in batch.nodes:
-        canonical = titles.get(node.title.strip().casefold(), node_id(node.title))
+        canonical = titles.get(canonical_title(node.title).casefold(), node_id(node.title))
         remap[node.id] = canonical
         if canonical in existing:
             old = existing[canonical]
-            for field in ("source_claims", "triggered_questions", "project_anchors", "evidence"):
+            for field in ("source_claims", "triggered_questions", "project_anchors", "evidence", "likely_followups", "practice_questions", "retest_questions"):
                 setattr(old, field, list(dict.fromkeys(getattr(old, field) + getattr(node, field))))
+            qa = {item.question: item for item in old.followup_qa}
+            qa.update({item.question: item for item in node.followup_qa})
+            old.followup_qa = list(qa.values())[:6]
             old.priority = min(old.priority, node.priority)
             old.interview_distance = min(old.interview_distance, node.interview_distance)
         else:
-            node = node.model_copy(update={"id": canonical})
+            node = node.model_copy(update={"id": canonical, "title": canonical_title(node.title)})
             existing[canonical] = node
-            titles[node.title.strip().casefold()] = canonical
+            titles[canonical_title(node.title).casefold()] = canonical
             added.append(canonical)
     edges = list(graph.edges)
     seen = {(e.source, e.target, e.relation_type) for e in edges}

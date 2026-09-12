@@ -1,31 +1,20 @@
 import pytest
-from interview_forge.agents.interviewer import Interviewer, InterviewerView, SpokenTurn
 from interview_forge.agents.repository_answerer import RepositoryAnswerer, AnswerDraft
-from interview_forge.schemas.models import Dimension
 from interview_forge.interview.engine import advance
 
 
 def test_dynamic_followup_and_blind_interviewer(session):
-    claim = session.claims[0]
-    previous = SpokenTurn(id="t1", question="为什么使用 Redis？", answer="我只调用了 API",
-                          signals=["api_only"], subtopic="implementation")
-    q = Interviewer().ask(InterviewerView(claim=claim, jd="", history=[previous], knowledge_titles=[], depth=1), "q2")
-    assert q.subtopic == "mechanism"
-    assert q.based_on_turn == "t1"
-    assert previous.answer in q.text
-    previous.signals = ["no_decision"]
-    changed = Interviewer().ask(InterviewerView(claim=claim, jd="", history=[previous], knowledge_titles=[], depth=1), "q2")
-    assert changed.dimension == Dimension.decision
-
-
-def test_interviewer_payload_does_not_leak_code(session):
-    class Capture:
-        def structured_generate(self, system, payload, schema):
-            assert "evidence_ids" not in payload["claim"]
-            assert "repository" not in payload
-            assert "excerpt" not in str(payload)
-            return Interviewer().ask(InterviewerView(claim=session.claims[0], jd="", history=[], knowledge_titles=[], depth=0), "q1")
-    Interviewer(Capture()).ask(InterviewerView(claim=session.claims[0], jd="", history=[], knowledge_titles=[], depth=0), "q1")
+    from interview_forge.interview.critic import critique_answer
+    from interview_forge.interview.attack_planner import choose_attack
+    from interview_forge.schemas.models import ChallengeOperator
+    advance(session)
+    turn = session.transcript[-1]
+    claim = next(c for c in session.claims if c.id == turn.question.claim_id)
+    surface = next(s for s in session.attack_surfaces if s.id == turn.question.provenance.attack_surface_id)
+    turn.critique = critique_answer(claim, surface, turn.question, "因为 Redis 快", [])
+    assert ChallengeOperator.MECHANISM_PRESSURE in turn.critique.followup_operators
+    assert turn.critique.missing_facets
+    assert choose_attack(session).unresolved_facets
 
 
 def test_answerer_refuses_fabricated_citations(session):
@@ -45,7 +34,7 @@ def test_simulation_never_promotes_mastery(session):
     assert all(n.mastery.status == "unknown" for n in session.knowledge_graph.nodes)
     assert len(session.transcript) == 6
     assert session.stop_reason == "max_turns"
-    assert session.transcript[5].question.subtopic != session.transcript[0].question.subtopic
+    assert len({t.question.plan.operator for t in session.transcript}) > 1
 
 
 def test_empty_evidence_keeps_audit_without_weakening_spoken_design(session):

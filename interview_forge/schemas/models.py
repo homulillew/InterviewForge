@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import Annotated, Literal
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator, AliasChoices
 from interview_forge.materials.models import MaterialItem
 
 Text = Annotated[str, Field(min_length=1, max_length=16000)]
@@ -24,6 +24,59 @@ class Dimension(str, Enum):
     evaluation = "Evaluation / Measurement"
     scaling = "Scaling"
     ownership = "Ownership"
+    debugging = "Debugging"
+    fundamentals = "Fundamentals"
+
+
+class ClaimType(str, Enum):
+    implementation = "implementation"
+    architecture = "architecture"
+    technology_choice = "technology_choice"
+    outcome = "outcome"
+    metric = "metric"
+    ownership = "ownership"
+    scale = "scale"
+    reliability = "reliability"
+    optimization = "optimization"
+
+
+class ChallengeOperator(str, Enum):
+    WHY_NECESSARY = "WHY_NECESSARY"
+    WHY_NOT_SIMPLER = "WHY_NOT_SIMPLER"
+    WHY_NOT_ALTERNATIVE = "WHY_NOT_ALTERNATIVE"
+    MECHANISM_PRESSURE = "MECHANISM_PRESSURE"
+    IMPLEMENTATION_PRESSURE = "IMPLEMENTATION_PRESSURE"
+    OWNERSHIP_PRESSURE = "OWNERSHIP_PRESSURE"
+    METRIC_PRESSURE = "METRIC_PRESSURE"
+    BASELINE_PRESSURE = "BASELINE_PRESSURE"
+    FAILURE_PRESSURE = "FAILURE_PRESSURE"
+    BOUNDARY_PRESSURE = "BOUNDARY_PRESSURE"
+    SCALE_PRESSURE = "SCALE_PRESSURE"
+    DEBUG_PRESSURE = "DEBUG_PRESSURE"
+    COUNTEREXAMPLE = "COUNTEREXAMPLE"
+    CONSISTENCY_PRESSURE = "CONSISTENCY_PRESSURE"
+    FUNDAMENTAL_DRILL = "FUNDAMENTAL_DRILL"
+
+
+class ProbeIntent(str, Enum):
+    problem = "problem"
+    mechanism = "mechanism"
+    decision = "decision"
+    implementation = "implementation"
+    ownership = "ownership"
+    evaluation = "evaluation"
+    failure = "failure"
+    boundary = "boundary"
+    scaling = "scaling"
+    debugging = "debugging"
+    fundamentals = "fundamentals"
+
+
+class Applicability(str, Enum):
+    direct = "direct"
+    transferable = "transferable"
+    style_only = "style_only"
+    reject = "reject"
 
 
 class ResumeStatement(Model):
@@ -45,11 +98,13 @@ class MasteryState(Model):
         return self
 
 
-class CapabilityClaim(Model):
+class AtomicClaim(Model):
     id: Text
     statement_id: Text
     proposition: Text
-    dimension: Dimension
+    claim_type: ClaimType
+    technologies: list[str] = Field(default_factory=list)
+    concepts: list[str] = Field(default_factory=list)
     topic: Text
     project: Text
     source_quote: Text
@@ -59,6 +114,107 @@ class CapabilityClaim(Model):
     evidence_ids: list[str] = Field(default_factory=list)
     answerability: Literal["unknown", "low", "medium", "high"] = "unknown"
     mastery: MasteryState = Field(default_factory=MasteryState)
+
+
+# Import compatibility only: the old dimension-bearing model lives in legacy_v1.
+CapabilityClaim = AtomicClaim
+
+
+class AttackSurface(Model):
+    id: Text
+    claim_id: Text
+    dimension: Dimension
+    relevance: Score
+    priority: Literal["P0", "P1", "P2", "P3"]
+    rationale: Text
+    coverage: Literal["untouched", "partial", "covered", "exhausted"] = "untouched"
+    question_count: int = Field(default=0, ge=0)
+    last_turn_id: str | None = None
+    corpus_support: Score = 0
+
+
+class AttackPlan(Model):
+    claim_id: Text
+    attack_surface_id: Text
+    goal: Text
+    unresolved_facets: list[str] = Field(default_factory=list)
+    preferred_operators: list[ChallengeOperator] = Field(min_length=1)
+    rationale: Text
+    utility: float = 0
+    utility_factors: dict[str, float] = Field(default_factory=dict)
+
+
+class QuestionPlan(Model):
+    claim_id: Text
+    attack_surface_id: Text
+    operator: ChallengeOperator
+    target_concept: Text
+    alternative: str | None = None
+    assumptions_to_test: list[str] = Field(default_factory=list)
+    expected_points: list[str] = Field(default_factory=list)
+    followup_candidates: list[str] = Field(default_factory=list)
+    corpus_match_ids: list[str] = Field(default_factory=list)
+    pattern_ids: list[str] = Field(default_factory=list)
+    transition_ids: list[str] = Field(default_factory=list)
+    style_profile_id: str | None = None
+    style_backoff_path: list[str] = Field(default_factory=list)
+    adaptation_reason: Text
+    previous_answer_trigger: str = ""
+
+
+class QuestionProvenance(Model):
+    resume_statement_id: Text
+    atomic_claim_id: Text
+    attack_surface_id: Text
+    corpus_match_ids: list[str] = Field(default_factory=list)
+    probe_pattern_ids: list[str] = Field(default_factory=list)
+    transition_ids: list[str] = Field(default_factory=list)
+    challenge_operator: ChallengeOperator
+    style_profile_id: str | None = None
+    style_backoff_path: list[str] = Field(default_factory=list)
+    adaptation_reason: Text
+    resume_relevance: Score = 1
+    corpus_support: Score = 0
+    style_confidence: Score = 0
+    origin: Literal["authored_baseline", "corpus", "migration", "human_retest"] = "authored_baseline"
+
+
+class AnswerCritique(Model):
+    covered_facets: list[str] = Field(default_factory=list)
+    missing_facets: list[str] = Field(default_factory=list)
+    vague_assertions: list[str] = Field(default_factory=list)
+    new_assertions: list[str] = Field(default_factory=list)
+    contradictions: list[str] = Field(default_factory=list)
+    answer_features: list[str] = Field(default_factory=list)
+    followup_operators: list[ChallengeOperator] = Field(default_factory=list)
+    suggested_next_surfaces: list[str] = Field(default_factory=list)
+    answer_quality: Score = 0
+    novelty: Score = 1
+
+
+class MaterialGap(Model):
+    kind: Literal["material_gap"] = "material_gap"
+    description: Text
+
+
+class AnswerGap(Model):
+    kind: Literal["answer_gap"] = "answer_gap"
+    description: Text
+
+
+class MasteryGap(Model):
+    kind: Literal["mastery_gap"] = "mastery_gap"
+    attempt_id: Text
+    description: Text
+
+
+class EvidenceRelation(Model):
+    evidence_id: Text
+    claim_id: Text
+    relation: Literal["related", "direct_support", "partial_support", "limitation", "contradicts"] = "related"
+    facets: list[Literal["implementation", "config", "validation", "metric", "ownership", "architecture"]]
+    confidence: Score
+    rationale: Text
 
 
 class RepoEvidence(Model):
@@ -72,7 +228,7 @@ class RepoEvidence(Model):
     excerpt: Text
     sha256: Text
     confidence: Score
-    supports_claim: list[str] = Field(default_factory=list)
+    related_claim_ids: list[str] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -109,6 +265,8 @@ class InterviewQuestion(Model):
     expected_points: list[str] = Field(default_factory=list)
     material_ids: list[str] = Field(default_factory=list)
     material_question: str | None = None
+    plan: QuestionPlan
+    provenance: QuestionProvenance
 
 
 class EvidenceMatch(Model):
@@ -119,7 +277,7 @@ class EvidenceMatch(Model):
 
 class Answer(Model):
     question_id: Text
-    direct_interview_answer: Text
+    spoken_answer: Text = Field(validation_alias=AliasChoices("spoken_answer", "direct_interview_answer"))
     evidence_selection: list[EvidenceMatch] = Field(default_factory=list)
     reference_material_ids: list[str] = Field(default_factory=list)
     reasoning_basis: list[str] = Field(default_factory=list)
@@ -136,6 +294,11 @@ class Answer(Model):
     answerability: Literal["low", "medium", "high"]
     signals: list[Literal["vague", "api_only", "no_implementation", "no_decision", "no_measurement", "failure_gap", "solid"]]
     provenance: Literal["offline", "model"]
+    material_gaps: list[MaterialGap] = Field(default_factory=list)
+
+    @property
+    def direct_interview_answer(self) -> str:
+        return self.spoken_answer
 
 
 class InterviewTurn(Model):
@@ -145,6 +308,16 @@ class InterviewTurn(Model):
     kind: Literal["simulation"] = "simulation"
     weaknesses_observed: list[str]
     new_knowledge_ids: list[str] = Field(default_factory=list)
+    critique: AnswerCritique = Field(default_factory=AnswerCritique)
+    answer_gaps: list[AnswerGap] = Field(default_factory=list)
+    attack_plan: AttackPlan | None = None
+
+
+class FollowupQA(Model):
+    question: Text
+    answer: Text
+    priority: Literal["P0", "P1", "P2", "P3"] = "P1"
+    interview_distance: int = Field(default=1, ge=0, le=3)
 
 
 class KnowledgeNode(Model):
@@ -168,6 +341,7 @@ class KnowledgeNode(Model):
     retest_questions: list[str]
     mastery: MasteryState = Field(default_factory=MasteryState)
     evidence: list[str] = Field(default_factory=list)
+    followup_qa: list[FollowupQA] = Field(default_factory=list)
 
 
 class KnowledgeEdge(Model):
@@ -200,6 +374,15 @@ class StudyCard(Model):
     explanation: Text
     followups: list[str]
     time_minutes: int = Field(default=5, ge=1, le=15)
+    title: str = ""
+    priority: Literal["P0", "P1", "P2", "P3"] = "P1"
+    interview_distance: int = Field(default=1, ge=0, le=3)
+    must_know: list[str] = Field(default_factory=list)
+    boundary: list[str] = Field(default_factory=list)
+    common_traps: list[str] = Field(default_factory=list)
+    followup_qa: list[FollowupQA] = Field(default_factory=list)
+    project_anchors: list[str] = Field(default_factory=list)
+    retest_questions: list[str] = Field(default_factory=list)
 
 
 class Exercise(Model):
@@ -214,13 +397,16 @@ class StudyTask(Model):
     weakness: Text
     evidence_from_interview: list[str] = Field(min_length=1)
     root_knowledge_gap: Text
-    gap_kind: Literal["material_gap", "mastery_gap"]
+    gap_kind: Literal["material_gap", "answer_gap", "mastery_gap"]
     learning_objectives: list[str]
     exercises: list[Exercise]
     project_task: Text
     retest_questions: list[str]
     mastery_criteria: list[str]
     status: Literal["pending", "completed"] = "pending"
+    covers_node_ids: list[str] = Field(default_factory=list)
+    estimated_minutes: int = Field(default=15, ge=1, le=120)
+    interview_value: float = Field(default=1, ge=0)
 
 
 class Assessment(Model):
@@ -276,17 +462,65 @@ class SessionConfig(Model):
     max_depth: int = Field(default=5, ge=1, le=10)
     deep_dive: bool = False
     library_path: str | None = None
+    corpus_path: str | None = None
+    company: str | None = None
+    role: str | None = None
+    round: str | None = None
+    seniority: str | None = None
+    style: Literal["neutral", "corpus"] = "neutral"
+
+
+class CorpusPin(Model):
+    revision: Text
+    database_fingerprint: Text
+    profile_ids: list[str] = Field(default_factory=list)
+
+
+class EffectiveStyle(Model):
+    id: str | None = None
+    sample_size: int = Field(default=0, ge=0)
+    confidence: Score = 0
+    profile_weights: dict[str, Score] = Field(default_factory=dict)
+    backoff_path: list[str] = Field(default_factory=list)
+    operator_distribution: dict[str, Score] = Field(default_factory=dict)
+    transition_distribution: dict[str, Score] = Field(default_factory=dict)
+    median_chain_depth: float = Field(default=3, ge=0)
+    question_length_median: float = Field(default=60, ge=0)
+
+
+class CorpusMatchRef(Model):
+    id: Text
+    revision: Text
+    pattern_id: Text
+    source_case_ids: list[str]
+    applicability: Applicability
+    relevance: Score
+    reason: Text
+
+
+class TransitionRef(Model):
+    id: Text
+    revision: Text
+    example_question_id: Text
+    from_question_id: str | None = None
 
 
 class InterviewSession(Model):
-    schema_version: Literal["1.0"] = "1.0"
+    schema_version: Literal["2.0"] = "2.0"
     id: Text
     status: Literal["ready", "running", "paused", "completed"] = "ready"
     resume: Text
     jd: str = ""
     config: SessionConfig
     statements: list[ResumeStatement]
-    claims: list[CapabilityClaim]
+    claims: list[AtomicClaim]
+    attack_surfaces: list[AttackSurface]
+    evidence_relations: list[EvidenceRelation] = Field(default_factory=list)
+    corpus_pin: CorpusPin | None = None
+    effective_style: EffectiveStyle = Field(default_factory=EffectiveStyle)
+    corpus_matches: list[CorpusMatchRef] = Field(default_factory=list)
+    corpus_transitions: list[TransitionRef] = Field(default_factory=list)
+    migration_notes: list[str] = Field(default_factory=list)
     repository_map: RepositoryMap
     evidences: list[RepoEvidence]
     materials: list[MaterialItem] = Field(default_factory=list)
@@ -308,6 +542,23 @@ class InterviewSession(Model):
         sids, cids, eids = unique(self.statements), unique(self.claims), unique(self.evidences)
         tids = unique(self.transcript)
         nids = unique(self.knowledge_graph.nodes)
+        aids = unique(self.attack_surfaces)
+        surfaces = {a.id: a for a in self.attack_surfaces}
+        matches = {m.id: m for m in self.corpus_matches}
+        if len(matches) != len(self.corpus_matches):
+            raise ValueError("duplicate corpus matches")
+        transitions = {t.id: t for t in self.corpus_transitions}
+        if len(transitions) != len(self.corpus_transitions):
+            raise ValueError("duplicate corpus transitions")
+        for match in [*self.corpus_matches, *self.corpus_transitions]:
+            if self.corpus_pin is None or match.revision != self.corpus_pin.revision:
+                raise ValueError("corpus reference does not belong to pinned revision")
+        if self.effective_style.id and (self.corpus_pin is None or
+                not set(self.effective_style.profile_weights) <= set(self.corpus_pin.profile_ids)):
+            raise ValueError("style profile does not belong to pin")
+        for surface in self.attack_surfaces:
+            if surface.claim_id not in cids or (surface.last_turn_id and surface.last_turn_id not in tids):
+                raise ValueError("dangling attack surface")
         mids = unique(self.materials)
         materials_by_id = {m.id: m for m in self.materials}
         unique(self.study_plan)
@@ -321,15 +572,37 @@ class InterviewSession(Model):
             if not set(c.evidence_ids) <= eids:
                 raise ValueError("dangling claim evidence")
             for eid in c.evidence_ids:
-                if c.id not in next(e.supports_claim for e in self.evidences if e.id == eid):
+                if c.id not in next(e.related_claim_ids for e in self.evidences if e.id == eid):
                     raise ValueError("claim links must be bidirectional")
         for e in self.evidences:
-            if not set(e.supports_claim) <= cids:
+            if not set(e.related_claim_ids) <= cids:
                 raise ValueError("dangling evidence claim")
-            for cid in e.supports_claim:
+            for cid in e.related_claim_ids:
                 if e.id not in next(c.evidence_ids for c in self.claims if c.id == cid):
                     raise ValueError("evidence links must be bidirectional")
         for q in questions:
+            p, plan = q.provenance, q.plan
+            claim = next((c for c in self.claims if c.id == q.claim_id), None)
+            if claim is None or p.atomic_claim_id != claim.id or p.resume_statement_id != claim.statement_id:
+                raise ValueError("question lacks a valid atomic resume anchor")
+            if p.attack_surface_id not in aids or surfaces[p.attack_surface_id].claim_id != claim.id:
+                raise ValueError("question lacks a valid attack surface")
+            if q.dimension != surfaces[p.attack_surface_id].dimension:
+                raise ValueError("question dimension differs from its attack surface")
+            if (plan.claim_id, plan.attack_surface_id, plan.operator) != (claim.id, p.attack_surface_id, p.challenge_operator):
+                raise ValueError("question plan and provenance disagree")
+            for field, other in (("corpus_match_ids", "corpus_match_ids"), ("pattern_ids", "probe_pattern_ids"),
+                                 ("transition_ids", "transition_ids"), ("style_backoff_path", "style_backoff_path")):
+                if getattr(plan, field) != getattr(p, other):
+                    raise ValueError("question plan provenance lists disagree")
+            if not set(p.corpus_match_ids) <= matches.keys() or not set(p.transition_ids) <= transitions.keys():
+                raise ValueError("question cites unknown corpus reference")
+            if set(p.probe_pattern_ids) != {matches[mid].pattern_id for mid in p.corpus_match_ids}:
+                raise ValueError("question pattern does not match corpus reference")
+            if any(matches[mid].applicability not in {Applicability.direct, Applicability.transferable} for mid in p.corpus_match_ids):
+                raise ValueError("inapplicable corpus reference in question")
+            if p.style_profile_id != plan.style_profile_id or (p.style_profile_id and p.style_profile_id != self.effective_style.id):
+                raise ValueError("question uses an unpinned style")
             if not set(q.material_ids) <= mids:
                 raise ValueError("question refers to missing material snapshot")
             if any(materials_by_id[mid].kind != "interview" for mid in q.material_ids):
@@ -340,16 +613,24 @@ class InterviewSession(Model):
             if q.claim_id not in cids or (q.based_on_turn and q.based_on_turn not in tids):
                 raise ValueError("dangling question provenance")
         def validate_answer(answer, question):
+            if question.provenance.origin != "migration" and answer.reference_material_ids:
+                raise ValueError("Runtime answerer cannot cite preparation or corpus material")
             if not set(answer.reference_material_ids) <= mids:
                 raise ValueError("answer refers to missing material snapshot")
             if any(materials_by_id[mid].kind != "answer" for mid in answer.reference_material_ids):
                 raise ValueError("answer references must be answer documents")
-            allowed = {e.id for e in self.evidences if question.claim_id in e.supports_claim}
+            allowed = {e.id for e in self.evidences if question.claim_id in e.related_claim_ids}
             if not set(answer.evidence_ids) <= allowed:
                 raise ValueError("answer evidence does not support its claim context")
             if not {m.evidence_id for m in answer.evidence_selection} <= allowed:
                 raise ValueError("invalid retrieval provenance")
+        for surface in self.attack_surfaces:
+            turns = [t for t in self.transcript if t.question.provenance.attack_surface_id == surface.id]
+            if surface.question_count != len(turns) or surface.last_turn_id != (turns[-1].id if turns else None):
+                raise ValueError("attack surface coverage history is inconsistent")
         for t in self.transcript:
+            if t.attack_plan and (t.attack_plan.claim_id, t.attack_plan.attack_surface_id) != (t.question.claim_id, t.question.plan.attack_surface_id):
+                raise ValueError("attack plan does not match question plan")
             validate_answer(t.answer, t.question)
             if t.answer.question_id != t.question.id or not set(t.answer.evidence_ids) <= eids:
                 raise ValueError("invalid answer references")
@@ -359,8 +640,20 @@ class InterviewSession(Model):
             if not set(n.source_claims) <= cids or not set(n.triggered_questions) <= qids or not set(n.evidence) <= eids:
                 raise ValueError("dangling knowledge provenance")
         for task in self.study_plan:
-            if task.node_id not in nids or not set(task.evidence_from_interview) <= tids | {r.id for r in self.retests}:
+            if task.node_id not in nids or not set(task.covers_node_ids) <= nids or not set(task.evidence_from_interview) <= tids | {r.id for r in self.retests}:
                 raise ValueError("study task without observed gap provenance")
+            if task.gap_kind == "mastery_gap" and not set(task.evidence_from_interview) <= {
+                    r.id for r in self.retests if r.human_answer and r.assessment}:
+                raise ValueError("mastery gap requires assessed human submissions")
+        relation_keys = set()
+        for relation in self.evidence_relations:
+            key = (relation.evidence_id, relation.claim_id)
+            if key in relation_keys or key[0] not in eids or key[1] not in cids:
+                raise ValueError("invalid evidence relation")
+            relation_keys.add(key)
+        expected_relations = {(e.id, cid) for e in self.evidences for cid in e.related_claim_ids}
+        if relation_keys != expected_relations:
+            raise ValueError("evidence relations must cover related claim links")
         for card in self.study_cards:
             if card.node_id not in nids:
                 raise ValueError("dangling study card")

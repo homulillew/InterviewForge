@@ -25,6 +25,11 @@ def export_reports(store, session):
     for name, value in {
         "repository_map.json": session.repository_map.model_dump(),
         "claims.json": [c.model_dump() for c in session.claims],
+        "attack_surfaces.json": [a.model_dump() for a in session.attack_surfaces],
+        "evidence_relations.json": [r.model_dump() for r in session.evidence_relations],
+        "question_provenance.json": [t.question.provenance.model_dump() for t in session.transcript],
+        "interview_style_trace.json": {"pin": session.corpus_pin.model_dump() if session.corpus_pin else None,
+            "effective_style": session.effective_style.model_dump()},
         "evidences.json": [e.model_dump() for e in session.evidences],
         "transcript.json": [t.model_dump() for t in session.transcript],
         "knowledge_graph.json": session.knowledge_graph.model_dump(),
@@ -35,6 +40,12 @@ def export_reports(store, session):
         "post_interview_review.json": review.model_dump(),
     }.items():
         store.export_json(name, value)
+    style = session.effective_style
+    write("interview_style_trace.md", "# Interview Style Trace\n\n" +
+        f"Target: {session.config.company or '*'} / {session.config.role or '*'} / {session.config.round or '*'}\n\n" +
+        f"Mode: {session.config.style}; independent samples: {style.sample_size}; confidence: {style.confidence:.3f}\n\n" +
+        "\n".join(style.backoff_path) + "\n\n" +
+        "\n\n".join(f"{t.question.id}: {t.question.provenance.model_dump_json()}" for t in session.transcript))
     risk = ["# Claim Risk Report", "", "Risk is an explainable heuristic, not interview probability calibration.", ""]
     for c in session.claims:
         risk += [f"## {c.id} · {c.risk_score} · {c.proposition}", f"来源：{c.source_quote}",
@@ -43,7 +54,7 @@ def export_reports(store, session):
     grounding = ["# Repository Evidence Map", "", *session.repository_map.limitations]
     for e in session.evidences:
         grounding += [f"## {e.id}: {e.file_path}:{e.line_start}-{e.line_end}",
-                      f"Claims: {', '.join(e.supports_claim)} · {e.evidence_type} · sha256: {e.sha256}",
+                      f"Claims: {', '.join(e.related_claim_ids)} · {e.evidence_type} · sha256: {e.sha256}",
                       literal_block(e.excerpt), "; ".join(e.limitations)]
     write("repository_evidence_map.md", "\n\n".join(grounding))
     transcript, answers, chains = ["# Adversarial Interview Transcript"], ["# Best Answer Cards"], ["# Follow-up Chains"]
@@ -104,7 +115,10 @@ def export_reports(store, session):
     write("knowledge_tree.md", "# Interview Knowledge Tree\n\n```text\n" + tree_view(session.knowledge_graph) + "```\n")
     cards = ["# Study Cards", "默认 P0/P1、distance 0/1；模拟产物不代表个人已经掌握。"]
     for c in session.study_cards:
-        cards += [f"## {c.node_id} · {c.time_minutes} min", c.one_liner, c.explanation, "\n".join(c.followups)]
+        cards += [f"## {c.title or c.node_id} · {c.priority} · distance {c.interview_distance} · {c.time_minutes} min",
+            c.one_liner, c.explanation, "Must know: " + "; ".join(c.must_know), "Traps: " + "; ".join(c.common_traps),
+            *[f"Q: {qa.question}\n\nA: {qa.answer}" for qa in c.followup_qa],
+            "Project anchors: " + "; ".join(c.project_anchors), "Retest: " + "; ".join(c.retest_questions)]
     write("study_cards.md", "\n\n".join(cards))
     practice = ["# Targeted Practice"]
     retest = ["# Retest Questions", "这是题目清单。CLI retest 在用户提交前不生成参考答案。"]

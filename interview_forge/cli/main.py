@@ -1,4 +1,6 @@
 import argparse
+import json
+from interview_forge.cli.corpus import add_corpus_parser, run_corpus
 from pathlib import Path
 import sys
 
@@ -26,7 +28,13 @@ def parser():
     start.add_argument("--resume", type=Path, required=True)
     start.add_argument("--repo", type=Path, required=True)
     start.add_argument("--jd", type=Path)
-    start.add_argument("--library", type=Path, default=DEFAULT_LIBRARY)
+    start.add_argument("--library", type=Path, default=DEFAULT_LIBRARY, help="Preparation library; never injected into the answerer")
+    start.add_argument("--corpus", type=Path)
+    start.add_argument("--company")
+    start.add_argument("--role")
+    start.add_argument("--round")
+    start.add_argument("--seniority")
+    start.add_argument("--style", choices=["neutral", "corpus"], default="neutral")
     start.add_argument("--provider", choices=["offline", "compatible"], default="offline")
     start.add_argument("--base-url")
     start.add_argument("--model")
@@ -41,7 +49,9 @@ def parser():
         "report": "Regenerate Markdown/JSON artifacts", "tree": "Show knowledge tree",
         "retest": "Ask one human retest question without reference", "answer": "Submit human retest answer",
         "grade-retest": "Retry feedback for an already saved answer",
-        "attach-library": "Use a material library for subsequent turns of this session",
+        "attach-library": "Set the preparation library; runtime corpus stays pinned",
+        "migrate-session": "Archive and explicitly migrate schema 1.0 to 2.0",
+        "explain-question": "Show the saved attack plan, corpus provenance and style backoff",
         "review-retest": "Record an explicit human rubric review", "reset": "Archive and reset interview history",
     }.items():
         commands[name] = sub.add_parser(name, help=help_text)
@@ -50,6 +60,7 @@ def parser():
     for name in ("run", "resume"):
         commands[name].add_argument("--turns", type=positive, help="Run only this many additional turns")
     commands["retest"].add_argument("--node")
+    commands["explain-question"].add_argument("--question", required=True)
     commands["attach-library"].add_argument("--library", type=Path, required=True)
     commands["grade-retest"].add_argument("--attempt")
     answers = commands["answer"].add_mutually_exclusive_group(required=True)
@@ -63,6 +74,13 @@ def parser():
     schema = sub.add_parser("schemas", help="Export all JSON Schemas")
     schema.add_argument("--output", type=Path, default=Path("schemas"))
     add_library_parser(sub)
+    add_corpus_parser(sub)
+    evaluation = sub.add_parser("eval")
+    evaluations = evaluation.add_subparsers(dest="eval_command", required=True)
+    evaluate = evaluations.add_parser("corpus")
+    evaluate.add_argument("--corpus", type=Path, required=True)
+    evaluate.add_argument("--cases", type=Path, required=True)
+    evaluate.add_argument("--output", type=Path, default=Path(".interviewforge/evaluations"))
     return p
 
 
@@ -86,6 +104,13 @@ def run_loop(session, store, limit=None):
 def main(argv=None):
     args = parser().parse_args(argv)
     try:
+        if args.command == "corpus":
+            return run_corpus(args)
+        if args.command == "eval":
+            from interview_forge.evaluation.corpus import evaluate_corpus
+            evaluate_corpus(args.corpus, args.cases, args.output)
+            print(args.output)
+            return 0
         if args.command == "library":
             return run_library(args)
         if args.command == "schemas":
@@ -103,7 +128,8 @@ def main(argv=None):
                     raise ValueError("Session must not be the repository root or its ancestor")
                 config = SessionConfig(provider=args.provider, model=args.model, base_url=args.base_url,
                     max_turns=args.max_turns, max_depth=args.max_depth, deep_dive=args.deep_dive,
-                    library_path=str(args.library.resolve()))
+                    library_path=str(args.library.resolve()), corpus_path=str(args.corpus.resolve()) if args.corpus else None,
+                    company=args.company, role=args.role, round=args.round, seniority=args.seniority, style=args.style)
                 session = start_session(args.resume.read_text(encoding="utf-8"), args.repo,
                     args.jd.read_text(encoding="utf-8") if args.jd else "", config, args.session)
                 store.save(session)
@@ -112,11 +138,27 @@ def main(argv=None):
                 if args.run:
                     run_loop(session, store)
                 return 0
+            if args.command == "migrate-session":
+                session = store.migrate()
+                export_reports(store, session)
+                print("Session migrated to schema 2.0; original archived")
+                return 0
             session = store.load()
+            if args.command == "explain-question":
+                record = next((t for t in [*session.transcript, *session.retests] if t.question.id == args.question), None)
+                if record is None:
+                    raise ValueError("Unknown question ID")
+                print(json.dumps({"question": record.question.model_dump(mode="json"),
+                    "attack_plan": record.attack_plan.model_dump(mode="json") if getattr(record, "attack_plan", None) else None,
+                    "corpus_pin": session.corpus_pin.model_dump() if session.corpus_pin else None,
+                    "style": session.effective_style.model_dump(),
+                    "corpus_matches": [m.model_dump(mode="json") for m in session.corpus_matches if m.id in record.question.plan.corpus_match_ids],
+                    "transitions": [t.model_dump() for t in session.corpus_transitions if t.id in record.question.plan.transition_ids]}, ensure_ascii=False, indent=2))
+                return 0
             if args.command == "attach-library":
                 session.config.library_path = str(args.library.resolve())
                 store.save(session)
-                print(f"Library attached: {session.config.library_path}; new material is retrieved on the next turn")
+                print(f"Library attached: {session.config.library_path}; preparation only; runtime corpus revision remains pinned")
             elif args.command in {"run", "resume"}:
                 if args.command == "resume" and session.status == "paused":
                     session.status = "running"

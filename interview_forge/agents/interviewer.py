@@ -1,28 +1,22 @@
-"""Interviewer receives a narrow view; repository evidence is never a dependency."""
-import re
+"""Render a controller-owned plan from a repository-blind view."""
 
+import re
 from pydantic import Field
-from interview_forge.curricula import TOPICS, topic_for
 from interview_forge.llm import LLMClient, prompt
 from interview_forge.quality import question_quality
-from interview_forge.schemas.models import CapabilityClaim, Dimension, InterviewQuestion, Model
-
-
-class SpokenTurn(Model):
-    id: str
-    question: str
-    answer: str
-    signals: list[str]
-    subtopic: str
-
-
-class QuestionSeed(Model):
-    id: str
-    question: str
-    followups: list[str] = Field(default_factory=list)
-    topics: list[str] = Field(default_factory=list)
-    company: str = ""
-    role: str = ""
+from interview_forge.schemas.models import (
+    Dimension,
+    InterviewQuestion,
+    Model,
+    QuestionPlan,
+    QuestionProvenance,
+    AttackSurface,
+    EffectiveStyle,
+    ChallengeOperator as O,
+)
+from interview_forge.semantics import technologies, tokens
+from interview_forge.corpus.dedup import normalized
+from interview_forge.corpus.patterns import SPEC
 
 
 def infer_dimension(text: str, default: Dimension = Dimension.mechanism) -> tuple[Dimension, str, int]:
@@ -30,146 +24,236 @@ def infer_dimension(text: str, default: Dimension = Dimension.mechanism) -> tupl
     # A previous answer is context; its keywords must not classify the new question.
     text = text.rsplit("”；", 1)[-1].casefold()
     for pattern, dimension, subtopic, level in (
-        (r"排查|诊断|定位.{0,16}(?:瓶颈|根因|故障|问题|异常|热点)|(?:故障|瓶颈|根因).{0,8}定位|debug|troubleshoot",
-         Dimension.failure, "debugging", 6),
-        (r"验证|评测|测量|衡量|指标|压测|实验|证明|测试|对照组|消融|benchmark|evaluat|measur|experiment|\btest|\bprove|\bvalidat|"
-         r"(?:比较|对比|compare).{0,80}(?:recall|ndcg|precision|延迟|吞吐|latency|p99|p95)",
-         Dimension.evaluation, "evaluation", 4),
-        (r"故障|失效|重试|超时|恢复|报错|出错|回滚|补偿|重复执行|响应丢失|失败|断连|断开|连接中断|failure|timeout|retry|recover|disconnect|connection.{0,12}(?:lost|closed)",
-         Dimension.failure, "failure", 5),
-        (r"禁止使用|不能使用|without.{0,25}(?:redis|database|cache)|counterfactual", Dimension.tradeoff, "counterfactual", 9),
-        (r"替代|选型|不用|权衡|选择|取舍|trade.?off|alternative|\bchoos|\bchose|\bversus\b|\bvs\.?\b",
-         Dimension.decision, "decision", 3),
+        (
+            r"排查|诊断|定位.{0,16}(?:瓶颈|根因|故障|问题|异常|热点)|(?:故障|瓶颈|根因).{0,8}定位|debug|troubleshoot",
+            Dimension.failure,
+            "debugging",
+            6,
+        ),
+        (
+            r"验证|评测|测量|衡量|指标|压测|实验|证明|测试|对照组|消融|benchmark|evaluat|measur|experiment|\btest|\bprove|\bvalidat|"
+            r"(?:比较|对比|compare).{0,80}(?:recall|ndcg|precision|延迟|吞吐|latency|p99|p95)",
+            Dimension.evaluation,
+            "evaluation",
+            4,
+        ),
+        (
+            r"故障|失效|重试|超时|恢复|报错|出错|回滚|补偿|重复执行|响应丢失|失败|断连|断开|连接中断|failure|timeout|retry|recover|disconnect|connection.{0,12}(?:lost|closed)",
+            Dimension.failure,
+            "failure",
+            5,
+        ),
+        (
+            r"禁止使用|不能使用|without.{0,25}(?:redis|database|cache)|counterfactual",
+            Dimension.tradeoff,
+            "counterfactual",
+            9,
+        ),
+        (
+            r"替代|选型|不用|权衡|选择|取舍|trade.?off|alternative|\bchoos|\bchose|\bversus\b|\bvs\.?\b",
+            Dimension.decision,
+            "decision",
+            3,
+        ),
         (r"规模|扩容|扩展|流量.{0,8}(?:翻|倍|放大)|scale|scaling", Dimension.scaling, "scaling", 7),
         (r"负责|主导|个人贡献|ownership|responsib", Dimension.ownership, "ownership", 0),
         (r"实现|落地|设计|implement|\bdesign", Dimension.engineering, "implementation", 1),
-        (r"原理|机制|原子性|状态变化|为什么|为何|是什么|解释|how.{0,40}work|\bwhy\b|\bexplain|mechanism",
-         Dimension.mechanism, "mechanism", 2),
+        (
+            r"原理|机制|原子性|状态变化|为什么|为何|是什么|解释|how.{0,40}work|\bwhy\b|\bexplain|mechanism",
+            Dimension.mechanism,
+            "mechanism",
+            2,
+        ),
     ):
         if re.search(pattern, text):
             return dimension, subtopic, level
     branch, level = {
-        Dimension.problem: ("clarification", 1), Dimension.mechanism: ("mechanism", 2),
-        Dimension.decision: ("decision", 3), Dimension.engineering: ("implementation", 1),
-        Dimension.tradeoff: ("counterfactual", 9), Dimension.failure: ("failure", 5),
-        Dimension.evaluation: ("evaluation", 4), Dimension.scaling: ("scaling", 7),
+        Dimension.problem: ("clarification", 1),
+        Dimension.mechanism: ("mechanism", 2),
+        Dimension.decision: ("decision", 3),
+        Dimension.engineering: ("implementation", 1),
+        Dimension.tradeoff: ("counterfactual", 9),
+        Dimension.failure: ("failure", 5),
+        Dimension.evaluation: ("evaluation", 4),
+        Dimension.scaling: ("scaling", 7),
         Dimension.ownership: ("ownership", 0),
     }[default]
     return default, branch, level
 
 
-def _question_key(text: str) -> str:
-    """Ignore OCR punctuation/spacing differences when checking previously used seeds."""
-    return re.sub(r"\W+", "", text.casefold())
+class SpokenTurn(Model):
+    id: str
+    question: str
+    answer: str
+    subtopic: str
 
 
 class InterviewerView(Model):
-    claim: CapabilityClaim
-    jd: str
-    history: list[SpokenTurn]
-    knowledge_titles: list[str]
-    depth: int
-    previous_topic_answer: SpokenTurn | None = Field(default=None)
-    experience_questions: list[QuestionSeed] = Field(default_factory=list)
-    used_material_questions: list[str] = Field(default_factory=list)
+    claim: dict
+    surface: AttackSurface
+    plan: QuestionPlan
+    style: EffectiveStyle
+    history: list[SpokenTurn] = Field(default_factory=list)
+    abstract_patterns: list[str] = Field(default_factory=list)
+    depth: int = 0
+
+
+class RenderedQuestion(Model):
+    text: str = Field(min_length=10, max_length=1200)
+
+
+def authored_question(view):
+    p = view.plan
+    target = p.target_concept
+    prompts = {
+        O.WHY_NECESSARY: f"{target}具体解决了哪个原始瓶颈，为什么这个瓶颈需要引入当前方案？",
+        O.WHY_NOT_SIMPLER: f"如果直接采用{p.alternative}，为什么在某个关键约束下无法达到{target}方案的效果？",
+        O.WHY_NOT_ALTERNATIVE: f"在相同业务约束下，{target}与{p.alternative}相比，如何判断决定选型的关键代价？",
+        O.MECHANISM_PRESSURE: f"请解释{target}从请求输入到状态变化的因果链，哪个步骤产生了你声称的效果？",
+        O.IMPLEMENTATION_PRESSURE: f"请沿一次具体请求解释{target}的实现过程，包括关键状态变化与异常分支？",
+        O.OWNERSHIP_PRESSURE: f"在{target}方案中，你独立作出的关键决策是什么，如何区分个人贡献与团队已有能力？",
+        O.METRIC_PRESSURE: f"如何定义和测量{target}方案的效果，使这个结论能够被复现实验检验？",
+        O.BASELINE_PRESSURE: f"验证{target}效果时，如何设置公平对照并排除资源、数据和负载变化的影响？",
+        O.FAILURE_PRESSURE: f"假设{target}的一次操作完成后响应丢失，重试时如何恢复并避免重复状态变化？",
+        O.BOUNDARY_PRESSURE: f"{target}声称的保证在哪个前提失效后不再成立，为什么？",
+        O.SCALE_PRESSURE: f"假设固定资源下请求量持续增长，如何判断{target}最先遇到的瓶颈？",
+        O.DEBUG_PRESSURE: f"假设{target}的线上表现突然恶化，如何用一次受控验证区分最可能的两个原因？",
+        O.COUNTEREXAMPLE: f"如何构造一个能推翻{target}当前结论的具体反例？",
+        O.CONSISTENCY_PRESSURE: f"如何检验{target}关于状态变化和结果保证的说法是否在同一个故障场景下自洽？",
+        O.FUNDAMENTAL_DRILL: f"{target}依赖的核心基础概念是什么，如何用最小例子解释它与当前方案的关系？",
+    }
+    anchor = view.claim["proposition"].rstrip("。；")
+    prefix = f"简历中提到“{anchor}”。"
+    if p.previous_answer_trigger and view.history:
+        trigger = view.history[-1].answer.split("。")[0][:85].replace("？", "").replace("?", "")
+        prefix += f"上一答提到“{trigger}”。"
+    return prefix + prompts[p.operator]
+
+
+def guard_question(text, view, corpus_questions=()):
+    ok, reason = question_quality(text)
+    if not ok:
+        return reason
+    if len(re.findall(r"[？?]", text)) > 1 or re.search(r"(?:\n|；)\s*(?:[2-9][.、]|第二|第三)", text):
+        return "Ask one primary question"
+    allowed = set(
+        technologies(
+            view.claim["source_quote"] + " " + view.plan.target_concept + " " + (view.plan.alternative or "")
+        )
+    )
+    if set(technologies(text)) - allowed:
+        return "Question introduced an unrelated technology"
+    if not tokens(text) & tokens(view.claim["proposition"] + " " + view.plan.target_concept):
+        return "Question lost its resume anchor"
+    for number in re.findall(r"\d+(?:\.\d+)?%?", text):
+        if number not in view.claim["source_quote"] and not re.search(r"假设|如果|例如|设定", text):
+            return "Question invented a measured premise"
+    if re.search(r"你的|你们|已经|上线后|线上发生过", text) and not re.search(r"假设|如果", text):
+        for premise in ("集群", "分片", "主从", "上线", "负责", "部署", "跨机房"):
+            if premise in text and premise not in view.claim["source_quote"]:
+                return "Question invented an architectural or ownership premise"
+    focus = text.rsplit("”。", 1)[-1]
+    operator_terms = {
+        O.WHY_NECESSARY: r"必要|需要|瓶颈|为什么|为何|why",
+        O.WHY_NOT_SIMPLER: r"直接|简单|simpler",
+        O.WHY_NOT_ALTERNATIVE: r"替代|相比|选型|不用|alternative|compare",
+        O.MECHANISM_PRESSURE: r"机制|原理|因果|原子|状态变化|mechanism|causal",
+        O.IMPLEMENTATION_PRESSURE: r"实现|流程|步骤|请求|implement",
+        O.OWNERSHIP_PRESSURE: r"负责|贡献|独立|个人|ownership",
+        O.METRIC_PRESSURE: r"测量|指标|评测|实验|衡量|证明|metric|measure",
+        O.BASELINE_PRESSURE: r"基线|对照|归因|控制|baseline",
+        O.FAILURE_PRESSURE: r"故障|失败|超时|丢失|重试|failure|timeout",
+        O.BOUNDARY_PRESSURE: r"边界|前提|保证|失效|boundary",
+        O.SCALE_PRESSURE: r"资源|规模|增长|容量|scale|load",
+        O.DEBUG_PRESSURE: r"排查|定位|原因|验证区分|诊断|debug",
+        O.COUNTEREXAMPLE: r"反例|推翻|counterexample|falsif",
+        O.CONSISTENCY_PRESSURE: r"矛盾|自洽|一致|冲突|consisten",
+        O.FUNDAMENTAL_DRILL: r"基础|概念|定义|fundamental|concept",
+    }
+    if not re.search(operator_terms[view.plan.operator], focus, re.I):
+        return "Question does not implement the planned challenge operator"
+    key = normalized(text)
+    for source in corpus_questions:
+        source = normalized(source)
+        if len(source) >= 24 and any(source[i : i + 24] in key for i in range(len(source) - 23)):
+            return "Question copied corpus wording"
+    for previous in view.history:
+        if normalized(previous.question) == key:
+            return "Question repeated history"
+        left, right = tokens(text), tokens(previous.question)
+        if len(left & right) / max(1, len(left | right)) > 0.90:
+            return "Question nearly repeated history"
+    return None
 
 
 class Interviewer:
     def __init__(self, client: LLMClient | None = None):
         self.client = client
 
-    def ask(self, view: InterviewerView, question_id: str) -> InterviewQuestion:
-        # Remove even evidence IDs and material scores before constructing a model context.
-        payload = view.model_dump()
-        payload["claim"] = view.claim.model_dump(exclude={"evidence_ids", "answerability", "risk_factors"})
-        topic = TOPICS[topic_for(view.claim.topic)]
-        used = {t.subtopic for t in view.history}
-        last = view.history[-1] if view.history else view.previous_topic_answer
-        initial = {
-            Dimension.problem: "clarification", Dimension.mechanism: "mechanism",
-            Dimension.decision: "decision", Dimension.engineering: "implementation",
-            Dimension.tradeoff: "counterfactual", Dimension.failure: "failure",
-            Dimension.evaluation: "evaluation", Dimension.scaling: "scaling",
-            Dimension.ownership: "ownership",
-        }
-        candidates = [initial[view.claim.dimension]] if not view.history else []
-        if view.history:
-            routing = {"vague": "clarification", "api_only": "mechanism", "no_implementation": "implementation",
-                       "no_decision": "decision", "no_measurement": "evaluation", "failure_gap": "failure"}
-            candidates = [routing[s] for s in last.signals if s in routing]
-        candidates += ["mechanism", "decision", "evaluation", "failure", "fundamentals", "scaling", "ownership", "debugging", "counterfactual"]
-        subtopic = next((x for x in candidates if x not in used), "counterfactual")
-        specs = {
-            "mechanism": (topic.questions[0], Dimension.mechanism, 2),
-            "decision": (topic.questions[2] if topic_for(view.claim.topic) == "rag" else topic.questions[1], Dimension.decision, 3),
-            "evaluation": (topic.questions[1] if topic_for(view.claim.topic) == "rag" else topic.questions[2], Dimension.evaluation, 4),
-            "failure": (topic.questions[3], Dimension.failure, 5),
-            "fundamentals": (topic.questions[4], Dimension.mechanism, 8),
-            "scaling": (topic.questions[5], Dimension.scaling, 7),
-            "implementation": (f"关于{view.claim.topic}，如何把核心机制放入实际业务流程，并说明请求在各组件之间如何流转？", Dimension.engineering, 1),
-            "clarification": (f"关于{view.claim.topic}，请用一个具体输入和状态变化解释你的方案为什么有效？", Dimension.problem, 1),
-            "ownership": (f"对于{view.claim.topic}，你负责哪些决策，如何区分个人实现与团队已有能力？", Dimension.ownership, 0),
-            "debugging": (f"对于{view.claim.topic}，线上指标突然恶化时如何通过观测缩小故障范围？", Dimension.failure, 6),
-            "counterfactual": (f"如果禁止使用{view.claim.topic}中的核心组件，你会如何守住同样的业务不变量？", Dimension.tradeoff, 9),
-        }
-        text, dimension, level = specs[subtopic]
-        if not view.history and view.previous_topic_answer:
-            variations = {
-                "decision": f"结合刚才的边界，如果业务更重视持久化一致性而不是吞吐，你会如何重新选择{view.claim.topic}的替代方案？",
-                "failure": f"结合刚才的假设，如果操作只完成了一半，你如何定义{view.claim.topic}的恢复与补偿边界？",
-                "evaluation": f"针对刚才提到的保证，你如何设计一个能推翻{view.claim.topic}有效性结论的反例实验？",
-            }
-            text = variations.get(subtopic, text)
-        source_id, source_question = None, None
-        seed_candidates = []
-        used_questions = {_question_key(question) for question in view.used_material_questions}
-        for rank, seed in enumerate(view.experience_questions):
-            for index, candidate in enumerate([seed.question, *seed.followups]):
-                if _question_key(candidate) in used_questions or not question_quality(candidate)[0]:
-                    continue
-                kind, branch, candidate_level = infer_dimension(candidate, dimension)
-                priority = (3 if kind == dimension else 0) + (2 if bool(index) == bool(last) else 0) - rank * 0.1
-                seed_candidates.append((priority, seed.id, candidate, kind, branch, candidate_level))
-        if seed_candidates and not self.client:
-            _, source_id, source_question, dimension, subtopic, level = max(seed_candidates, key=lambda row: row[0])
-            text = f"结合{view.claim.project}，{source_question}"
-        rationale = "首问验证简历能力主张"
-        if last:
-            rationale = f"上一答信号 {','.join(last.signals)}；继续验证 {subtopic}"
-            anchor = last.answer.split("。", 1)[0].replace("\n", " ")
-            if len(anchor) > 90:
-                anchor = anchor[:90] + "…"
-            text = f"上一答提到“{anchor}”；{text}"
-        if source_id:
-            rationale += f"；面经来源 {source_id}"
+    def ask(
+        self,
+        view: InterviewerView,
+        question_id: str,
+        provenance: QuestionProvenance,
+        corpus_questions=(),
+        previous_questions=(),
+    ) -> InterviewQuestion:
+        text = authored_question(view)
         if self.client:
-            payload.update({"question_id": question_id, "suggested_subtopic": subtopic})
-            question = self.client.structured_generate(prompt("interviewer"), payload, InterviewQuestion)
-            question.id = question_id
-            question.claim_id = view.claim.id
-            question.depth = view.depth
-            question.based_on_turn = last.id if last else None
-        else:
-            question = InterviewQuestion(id=question_id, claim_id=view.claim.id, text=text, dimension=dimension,
-                level=level, depth=view.depth, subtopic=subtopic, rationale=rationale,
-                based_on_turn=last.id if last else None, expected_points=list(topic.rubric),
-                material_ids=[source_id] if source_id else [], material_question=source_question)
-        seeds = {seed.id: seed for seed in view.experience_questions}
-        if not set(question.material_ids) <= seeds.keys():
-            raise ValueError("Interviewer cited an unknown experience item")
-        if question.material_ids and question.material_question is None:
-            seed = seeds[question.material_ids[0]]
-            question.material_question = seed.question or next(iter(seed.followups), "")
-        if question.material_question is not None and not any(question.material_question in
-                [seeds[mid].question, *seeds[mid].followups] for mid in question.material_ids):
-            raise ValueError("Interviewer source question is not present in cited experience")
-        if question.material_question is not None and _question_key(question.material_question) in used_questions:
-            raise ValueError("Interviewer repeated an experience question already covered")
-        if self.client and question.material_question is not None:
-            question.dimension, question.subtopic, question.level = infer_dimension(question.text, question.dimension)
-        ok, reason = question_quality(question.text)
-        if not ok:
-            raise ValueError(reason)
-        if any(t.question == question.text for t in view.history):
-            raise ValueError("Interviewer repeated the same question")
-        return question
+            # Renderer sees abstractions only; IDs and corpus raw text stay in the controller.
+            payload = {
+                "claim": view.claim,
+                "surface": {"dimension": view.surface.dimension.value},
+                "plan": view.plan.model_dump(
+                    exclude={"corpus_match_ids", "pattern_ids", "transition_ids", "style_profile_id"}
+                ),
+                "style": view.style.model_dump(exclude={"id", "profile_weights", "backoff_path"}),
+                "abstract_patterns": view.abstract_patterns,
+                "history": [t.model_dump() for t in view.history],
+            }
+            for attempt in range(2):
+                text = self.client.structured_generate(prompt("interviewer"), payload, RenderedQuestion).text
+                problem = guard_question(text, view, corpus_questions)
+                if not problem:
+                    break
+                payload["rewrite_requirement"] = problem
+            else:
+                raise ValueError("Question renderer failed guards: " + problem)
+        problem = guard_question(text, view, corpus_questions)
+        if any(
+            normalized(text.rsplit("”。", 1)[-1]) == normalized(q.rsplit("”。", 1)[-1])
+            for q in previous_questions
+        ):
+            problem = "Question repeated an already tested project probe"
+        if problem:
+            raise ValueError(problem)
+        intent, _, _ = SPEC[view.plan.operator]
+        branch = {"boundary": "counterfactual", "implementation": "implementation"}.get(
+            intent.value, intent.value
+        )
+        return InterviewQuestion(
+            id=question_id,
+            claim_id=view.plan.claim_id,
+            text=text,
+            dimension=view.surface.dimension,
+            level={
+                "ownership": 0,
+                "implementation": 1,
+                "problem": 1,
+                "mechanism": 2,
+                "decision": 3,
+                "evaluation": 4,
+                "failure": 5,
+                "debugging": 6,
+                "scaling": 7,
+                "fundamentals": 8,
+                "boundary": 9,
+            }[intent.value],
+            depth=min(9, view.depth),
+            subtopic=branch,
+            rationale=view.plan.adaptation_reason,
+            based_on_turn=view.history[-1].id if view.history else None,
+            expected_points=view.plan.expected_points,
+            plan=view.plan,
+            provenance=provenance,
+        )

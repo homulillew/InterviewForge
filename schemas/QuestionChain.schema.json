@@ -1,0 +1,51 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "case_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Case Id",
+      "type": "string"
+    },
+    "question_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Question Ids",
+      "type": "array"
+    },
+    "topic": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Topic",
+      "type": "array"
+    },
+    "depth": {
+      "minimum": 0,
+      "title": "Depth",
+      "type": "integer"
+    },
+    "quality": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Quality",
+      "type": "number"
+    }
+  },
+  "required": [
+    "id",
+    "case_id",
+    "question_ids",
+    "depth",
+    "quality"
+  ],
+  "title": "QuestionChain",
+  "type": "object"
+}

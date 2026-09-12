@@ -314,8 +314,8 @@ def test_reimport_versions_changed_followups_and_preserves_session_history(sessi
     session.config.library_path = str(library.directory)
     assert advance(session)
     first_turn = session.transcript[0].model_copy(deep=True)
-    assert first_turn.question.material_ids == [original_item.id]
-    assert first_turn.question.material_question == question
+    assert not first_turn.question.material_ids
+    assert first_turn.question.material_question is None
 
     library.remove(original_document.id)
     replacement_document = library.add(source, client=Client([followup]))
@@ -326,19 +326,13 @@ def test_reimport_versions_changed_followups_and_preserves_session_history(sessi
     assert library.add(source, client=Client([followup])).item_ids == replacement_document.item_ids
     assert advance(session)
     assert session.transcript[0] == first_turn
-    assert session.transcript[1].question.material_ids == [replacement_item.id]
-    assert session.transcript[1].question.material_question == followup
-
-    snapshots = {item.id: item for item in session.materials}
-    assert snapshots[original_item.id] == original_item
-    assert snapshots[replacement_item.id] == replacement_item
+    assert not session.transcript[1].question.material_ids
+    assert not session.materials
     store = SessionStore(tmp_path / "session")
     store.save(session)
     assert store.load() == session
     export_reports(store, session)
-    usage = json.loads((store.directory / "material_usage.json").read_text())
-    assert any(item["id"] == original_item.id and item["record_id"] == first_turn.id for item in usage)
-    assert any(item["id"] == replacement_item.id and item["record_id"] == session.transcript[1].id for item in usage)
+    assert json.loads((store.directory / "material_usage.json").read_text()) == []
 
 
 def test_legacy_material_ids_are_loaded_and_deduplicated_without_rewriting(tmp_path):

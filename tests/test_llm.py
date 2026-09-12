@@ -65,10 +65,10 @@ def test_model_cannot_smuggle_project_claim_into_general_knowledge(session):
 
 def test_semantic_pipeline_contracts_and_retest(session, tmp_path):
     """Exercise every typed model boundary with a fixture client; not a model-quality eval."""
-    from interview_forge.agents.interviewer import Interviewer, InterviewerView
+    from interview_forge.agents.interviewer import RenderedQuestion, InterviewerView, authored_question
     from interview_forge.claims.pipeline import ClaimBatch, extract_claims
     from interview_forge.knowledge.graph import KnowledgeBatch, extract_knowledge
-    from interview_forge.schemas.models import CapabilityClaim, InterviewQuestion, InterviewTurn
+    from interview_forge.schemas.models import CapabilityClaim, InterviewTurn, AnswerCritique
     from interview_forge.interview.retest import begin_retest, submit_retest
     calls = []
     class FixtureClient:
@@ -78,9 +78,16 @@ def test_semantic_pipeline_contracts_and_retest(session, tmp_path):
             if schema is ClaimBatch:
                 _, claims = extract_claims("\n".join(s["text"] for s in payload["statements"]))
                 return ClaimBatch(claims=claims)
-            if schema is InterviewQuestion:
-                return Interviewer().ask(InterviewerView.model_validate({k: v for k, v in payload.items()
-                    if k not in {"question_id", "suggested_subtopic"}}), payload["question_id"])
+            if schema is RenderedQuestion:
+                from interview_forge.schemas.models import QuestionPlan, AttackSurface, EffectiveStyle
+                plan = QuestionPlan.model_validate(payload["plan"])
+                view = InterviewerView(claim=payload["claim"], plan=plan,
+                    surface=AttackSurface(id=plan.attack_surface_id, claim_id=plan.claim_id,
+                        dimension=payload["surface"]["dimension"], priority="P0", relevance=1, rationale="fixture"),
+                    style=EffectiveStyle.model_validate(payload["style"]))
+                return RenderedQuestion(text=authored_question(view))
+            if schema is AnswerCritique:
+                return AnswerCritique(missing_facets=["baseline"], answer_quality=.5)
             if schema is AnswerDraft:
                 return AnswerDraft(evidence_ids=[e["id"] for e in payload["evidences"][:2]],
                     technical_explanation="原子执行需要明确读检查写的范围；超时重试还需要幂等保证。",
@@ -97,7 +104,7 @@ def test_semantic_pipeline_contracts_and_retest(session, tmp_path):
     assert claims
     assert advance(session, client)
     assert session.transcript[0].answer.provenance == "model"
-    assert set(calls) >= {"ClaimBatch", "InterviewQuestion", "AnswerDraft", "KnowledgeBatch"}
+    assert set(calls) >= {"ClaimBatch", "RenderedQuestion", "AnswerDraft", "AnswerCritique", "KnowledgeBatch"}
     before = len(calls)
     session, pending = begin_retest(session)
     assert len(calls) == before and pending.reference is None

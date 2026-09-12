@@ -1,0 +1,42 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "revision": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Revision",
+      "type": "string"
+    },
+    "example_question_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Example Question Id",
+      "type": "string"
+    },
+    "from_question_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "From Question Id"
+    }
+  },
+  "required": [
+    "id",
+    "revision",
+    "example_question_id"
+  ],
+  "title": "TransitionRef",
+  "type": "object"
+}

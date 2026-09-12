@@ -128,7 +128,7 @@ def scan_repository(root: Path, claims: list[CapabilityClaim], exclude: Path | N
             evidence.append(RepoEvidence(id=eid, file_path=relative, symbol=symbol, line_start=start+1,
                 line_end=min(start+40, len(lines)), evidence_type=kind, summary=f"Source excerpt ({kind}); relevance is a search hypothesis",
                 excerpt=excerpt, sha256=hashlib.sha256(raw).hexdigest(), confidence=0.65 if kind == "implementation" else 0.4,
-                supports_claim=linked, limitations=["Static source observation; not runtime verification, ownership or measured improvement."]))
+                related_claim_ids=linked, limitations=["Static source observation; not runtime verification, ownership or measured improvement."]))
     repo_map.skipped = skipped
     repo_map.sections["Languages"] = sorted(repo_map.languages)
     repo_map.sections["Directory Structure"] = sorted({str(Path(p).parent) for p in repo_map.files})
@@ -136,5 +136,5 @@ def scan_repository(root: Path, claims: list[CapabilityClaim], exclude: Path | N
                            "Data Flow requires semantic inspection; file categories are search hints, not confirmed architecture.",
                            "Possible credentials are filtered heuristically; review inputs before using a remote provider."]
     for c in claims:
-        c.evidence_ids = [e.id for e in evidence if c.id in e.supports_claim]
+        c.evidence_ids = [e.id for e in evidence if c.id in e.related_claim_ids]
     return repo_map, evidence

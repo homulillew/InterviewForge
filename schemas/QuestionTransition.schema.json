@@ -1,0 +1,120 @@
+{
+  "$defs": {
+    "ChallengeOperator": {
+      "enum": [
+        "WHY_NECESSARY",
+        "WHY_NOT_SIMPLER",
+        "WHY_NOT_ALTERNATIVE",
+        "MECHANISM_PRESSURE",
+        "IMPLEMENTATION_PRESSURE",
+        "OWNERSHIP_PRESSURE",
+        "METRIC_PRESSURE",
+        "BASELINE_PRESSURE",
+        "FAILURE_PRESSURE",
+        "BOUNDARY_PRESSURE",
+        "SCALE_PRESSURE",
+        "DEBUG_PRESSURE",
+        "COUNTEREXAMPLE",
+        "CONSISTENCY_PRESSURE",
+        "FUNDAMENTAL_DRILL"
+      ],
+      "title": "ChallengeOperator",
+      "type": "string"
+    },
+    "ProbeIntent": {
+      "enum": [
+        "problem",
+        "mechanism",
+        "decision",
+        "implementation",
+        "ownership",
+        "evaluation",
+        "failure",
+        "boundary",
+        "scaling",
+        "debugging",
+        "fundamentals"
+      ],
+      "title": "ProbeIntent",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "from_question_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "From Question Id"
+    },
+    "from_intent": {
+      "$ref": "#/$defs/ProbeIntent"
+    },
+    "candidate_answer_features": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Candidate Answer Features",
+      "type": "array"
+    },
+    "trigger_summary": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Trigger Summary",
+      "type": "string"
+    },
+    "to_intent": {
+      "$ref": "#/$defs/ProbeIntent"
+    },
+    "challenge_operator": {
+      "$ref": "#/$defs/ChallengeOperator"
+    },
+    "example_question_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Example Question Id",
+      "type": "string"
+    },
+    "confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "source_case_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Source Case Id",
+      "type": "string"
+    },
+    "observed_answer": {
+      "default": false,
+      "title": "Observed Answer",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "id",
+    "from_intent",
+    "trigger_summary",
+    "to_intent",
+    "challenge_operator",
+    "example_question_id",
+    "confidence",
+    "source_case_id"
+  ],
+  "title": "QuestionTransition",
+  "type": "object"
+}

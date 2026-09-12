@@ -5,8 +5,9 @@ from interview_forge.schemas.models import CapabilityClaim, Dimension, Interview
 
 
 def test_claim_is_capability_and_risk_is_bounded(session):
-    assert all(claim_quality(c.proposition)[0] for c in session.claims)
-    assert len({c.dimension for c in session.claims}) >= 7
+    assert all(c.proposition in c.source_quote for c in session.claims)
+    assert all("dimension" not in c.model_dump() for c in session.claims)
+    assert len(session.attack_surfaces) > len(session.claims)
     assert session.claims[0].risk_score >= session.claims[-1].risk_score
     assert session.claims[0].risk_reasons
     with pytest.raises(ValidationError):
@@ -40,7 +41,7 @@ def test_source_quote_and_links_are_validated(session):
     with pytest.raises(ValidationError):
         InterviewSession.model_validate(data)
     data = session.model_dump()
-    data["evidences"][0]["supports_claim"] = ["missing"]
+    data["evidences"][0]["related_claim_ids"] = ["missing"]
     with pytest.raises(ValidationError):
         InterviewSession.model_validate(data)
 

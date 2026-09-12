@@ -1,0 +1,142 @@
+{
+  "$defs": {
+    "ChallengeOperator": {
+      "enum": [
+        "WHY_NECESSARY",
+        "WHY_NOT_SIMPLER",
+        "WHY_NOT_ALTERNATIVE",
+        "MECHANISM_PRESSURE",
+        "IMPLEMENTATION_PRESSURE",
+        "OWNERSHIP_PRESSURE",
+        "METRIC_PRESSURE",
+        "BASELINE_PRESSURE",
+        "FAILURE_PRESSURE",
+        "BOUNDARY_PRESSURE",
+        "SCALE_PRESSURE",
+        "DEBUG_PRESSURE",
+        "COUNTEREXAMPLE",
+        "CONSISTENCY_PRESSURE",
+        "FUNDAMENTAL_DRILL"
+      ],
+      "title": "ChallengeOperator",
+      "type": "string"
+    },
+    "ProbeIntent": {
+      "enum": [
+        "problem",
+        "mechanism",
+        "decision",
+        "implementation",
+        "ownership",
+        "evaluation",
+        "failure",
+        "boundary",
+        "scaling",
+        "debugging",
+        "fundamentals"
+      ],
+      "title": "ProbeIntent",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "case_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Case Id",
+      "type": "string"
+    },
+    "text": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "topic": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Topic",
+      "type": "array"
+    },
+    "probe_intent": {
+      "$ref": "#/$defs/ProbeIntent"
+    },
+    "challenge_operator": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ChallengeOperator"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "order": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Order"
+    },
+    "previous_question_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Previous Question Id"
+    },
+    "answer_context": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Answer Context"
+    },
+    "answer_feature": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Answer Feature",
+      "type": "array"
+    },
+    "confidence": {
+      "default": 0.6,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    }
+  },
+  "required": [
+    "id",
+    "case_id",
+    "text",
+    "probe_intent"
+  ],
+  "title": "CorpusQuestion",
+  "type": "object"
+}

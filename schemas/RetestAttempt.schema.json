@@ -9,10 +9,10 @@
           "title": "Question Id",
           "type": "string"
         },
-        "direct_interview_answer": {
+        "spoken_answer": {
           "maxLength": 16000,
           "minLength": 1,
-          "title": "Direct Interview Answer",
+          "title": "Spoken Answer",
           "type": "string"
         },
         "evidence_selection": {
@@ -136,11 +136,18 @@
           ],
           "title": "Provenance",
           "type": "string"
+        },
+        "material_gaps": {
+          "items": {
+            "$ref": "#/$defs/MaterialGap"
+          },
+          "title": "Material Gaps",
+          "type": "array"
         }
       },
       "required": [
         "question_id",
-        "direct_interview_answer",
+        "spoken_answer",
         "technical_explanation",
         "technology_decision",
         "failure_modes",
@@ -196,6 +203,27 @@
       "title": "Assessment",
       "type": "object"
     },
+    "ChallengeOperator": {
+      "enum": [
+        "WHY_NECESSARY",
+        "WHY_NOT_SIMPLER",
+        "WHY_NOT_ALTERNATIVE",
+        "MECHANISM_PRESSURE",
+        "IMPLEMENTATION_PRESSURE",
+        "OWNERSHIP_PRESSURE",
+        "METRIC_PRESSURE",
+        "BASELINE_PRESSURE",
+        "FAILURE_PRESSURE",
+        "BOUNDARY_PRESSURE",
+        "SCALE_PRESSURE",
+        "DEBUG_PRESSURE",
+        "COUNTEREXAMPLE",
+        "CONSISTENCY_PRESSURE",
+        "FUNDAMENTAL_DRILL"
+      ],
+      "title": "ChallengeOperator",
+      "type": "string"
+    },
     "Dimension": {
       "enum": [
         "Problem Understanding",
@@ -206,7 +234,9 @@
         "Failure Handling",
         "Evaluation / Measurement",
         "Scaling",
-        "Ownership"
+        "Ownership",
+        "Debugging",
+        "Fundamentals"
       ],
       "title": "Dimension",
       "type": "string"
@@ -329,6 +359,12 @@
           ],
           "default": null,
           "title": "Material Question"
+        },
+        "plan": {
+          "$ref": "#/$defs/QuestionPlan"
+        },
+        "provenance": {
+          "$ref": "#/$defs/QuestionProvenance"
         }
       },
       "required": [
@@ -339,9 +375,265 @@
         "level",
         "depth",
         "subtopic",
-        "rationale"
+        "rationale",
+        "plan",
+        "provenance"
       ],
       "title": "InterviewQuestion",
+      "type": "object"
+    },
+    "MaterialGap": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "material_gap",
+          "default": "material_gap",
+          "title": "Kind",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "title": "MaterialGap",
+      "type": "object"
+    },
+    "QuestionPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "claim_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Claim Id",
+          "type": "string"
+        },
+        "attack_surface_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Attack Surface Id",
+          "type": "string"
+        },
+        "operator": {
+          "$ref": "#/$defs/ChallengeOperator"
+        },
+        "target_concept": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Target Concept",
+          "type": "string"
+        },
+        "alternative": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alternative"
+        },
+        "assumptions_to_test": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Assumptions To Test",
+          "type": "array"
+        },
+        "expected_points": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Expected Points",
+          "type": "array"
+        },
+        "followup_candidates": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Followup Candidates",
+          "type": "array"
+        },
+        "corpus_match_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Corpus Match Ids",
+          "type": "array"
+        },
+        "pattern_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Pattern Ids",
+          "type": "array"
+        },
+        "transition_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Transition Ids",
+          "type": "array"
+        },
+        "style_profile_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style Profile Id"
+        },
+        "style_backoff_path": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Style Backoff Path",
+          "type": "array"
+        },
+        "adaptation_reason": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Adaptation Reason",
+          "type": "string"
+        },
+        "previous_answer_trigger": {
+          "default": "",
+          "title": "Previous Answer Trigger",
+          "type": "string"
+        }
+      },
+      "required": [
+        "claim_id",
+        "attack_surface_id",
+        "operator",
+        "target_concept",
+        "adaptation_reason"
+      ],
+      "title": "QuestionPlan",
+      "type": "object"
+    },
+    "QuestionProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "resume_statement_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Resume Statement Id",
+          "type": "string"
+        },
+        "atomic_claim_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Atomic Claim Id",
+          "type": "string"
+        },
+        "attack_surface_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Attack Surface Id",
+          "type": "string"
+        },
+        "corpus_match_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Corpus Match Ids",
+          "type": "array"
+        },
+        "probe_pattern_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Probe Pattern Ids",
+          "type": "array"
+        },
+        "transition_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Transition Ids",
+          "type": "array"
+        },
+        "challenge_operator": {
+          "$ref": "#/$defs/ChallengeOperator"
+        },
+        "style_profile_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style Profile Id"
+        },
+        "style_backoff_path": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Style Backoff Path",
+          "type": "array"
+        },
+        "adaptation_reason": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Adaptation Reason",
+          "type": "string"
+        },
+        "resume_relevance": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Resume Relevance",
+          "type": "number"
+        },
+        "corpus_support": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Corpus Support",
+          "type": "number"
+        },
+        "style_confidence": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Style Confidence",
+          "type": "number"
+        },
+        "origin": {
+          "default": "authored_baseline",
+          "enum": [
+            "authored_baseline",
+            "corpus",
+            "migration",
+            "human_retest"
+          ],
+          "title": "Origin",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resume_statement_id",
+        "atomic_claim_id",
+        "attack_surface_id",
+        "challenge_operator",
+        "adaptation_reason"
+      ],
+      "title": "QuestionProvenance",
       "type": "object"
     }
   },

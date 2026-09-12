@@ -1,9 +1,13 @@
-# Question quality
+# Question quality and provenance
 
-Ask one main question whose answer requires understanding a mechanism, decision,
-boundary, failure or measurement. Reject file/class locations and dependency checks.
-A technical detail is useful only when it anchors a reasoning question, e.g. how changing
-candidate count changes retrieval quality and latency. Never invent a config value.
+Every question must anchor one AtomicClaim and one AttackSurface. Follow the controller's
+QuestionPlan and ask one primary question. Corpus supplies abstract operators, not copied
+raw questions. Never ask repository file/class location or dependency-presence trivia.
 
-The executable guard is conservative and lexical. A host agent must also apply semantic
-judgment: a question can contain “why” and still be low-value trivia.
+Check resume anchor, applicability, unrelated technology, unsupported premise, one main
+question, near duplicate history and near-copy corpus. Introduce failure/scale conditions
+as hypotheses unless they appear in the resume. The controller owns IDs and provenance;
+the renderer cannot fabricate matches, transitions, style IDs or source quotations.
+
+Lexical checks complement semantic review. A recognized technology list cannot detect all
+irrelevant concepts, and a 24-character copy guard does not detect every paraphrase.

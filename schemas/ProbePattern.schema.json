@@ -1,0 +1,172 @@
+{
+  "$defs": {
+    "ChallengeOperator": {
+      "enum": [
+        "WHY_NECESSARY",
+        "WHY_NOT_SIMPLER",
+        "WHY_NOT_ALTERNATIVE",
+        "MECHANISM_PRESSURE",
+        "IMPLEMENTATION_PRESSURE",
+        "OWNERSHIP_PRESSURE",
+        "METRIC_PRESSURE",
+        "BASELINE_PRESSURE",
+        "FAILURE_PRESSURE",
+        "BOUNDARY_PRESSURE",
+        "SCALE_PRESSURE",
+        "DEBUG_PRESSURE",
+        "COUNTEREXAMPLE",
+        "CONSISTENCY_PRESSURE",
+        "FUNDAMENTAL_DRILL"
+      ],
+      "title": "ChallengeOperator",
+      "type": "string"
+    },
+    "ClaimType": {
+      "enum": [
+        "implementation",
+        "architecture",
+        "technology_choice",
+        "outcome",
+        "metric",
+        "ownership",
+        "scale",
+        "reliability",
+        "optimization"
+      ],
+      "title": "ClaimType",
+      "type": "string"
+    },
+    "Dimension": {
+      "enum": [
+        "Problem Understanding",
+        "Mechanism Understanding",
+        "Technology Decision",
+        "Implementation / Engineering",
+        "Trade-off Awareness",
+        "Failure Handling",
+        "Evaluation / Measurement",
+        "Scaling",
+        "Ownership",
+        "Debugging",
+        "Fundamentals"
+      ],
+      "title": "Dimension",
+      "type": "string"
+    },
+    "ProbeIntent": {
+      "enum": [
+        "problem",
+        "mechanism",
+        "decision",
+        "implementation",
+        "ownership",
+        "evaluation",
+        "failure",
+        "boundary",
+        "scaling",
+        "debugging",
+        "fundamentals"
+      ],
+      "title": "ProbeIntent",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "source_case_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Case Ids",
+      "type": "array"
+    },
+    "source_question_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Question Ids",
+      "type": "array"
+    },
+    "applicable_topics": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Applicable Topics",
+      "type": "array"
+    },
+    "applicable_technology_families": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Applicable Technology Families",
+      "type": "array"
+    },
+    "trigger_claim_types": {
+      "items": {
+        "$ref": "#/$defs/ClaimType"
+      },
+      "title": "Trigger Claim Types",
+      "type": "array"
+    },
+    "trigger_answer_features": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Trigger Answer Features",
+      "type": "array"
+    },
+    "attack_dimension": {
+      "$ref": "#/$defs/Dimension"
+    },
+    "challenge_operator": {
+      "$ref": "#/$defs/ChallengeOperator"
+    },
+    "abstract_pattern": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Abstract Pattern",
+      "type": "string"
+    },
+    "next_intents": {
+      "items": {
+        "$ref": "#/$defs/ProbeIntent"
+      },
+      "title": "Next Intents",
+      "type": "array"
+    },
+    "support_count": {
+      "minimum": 1,
+      "title": "Support Count",
+      "type": "integer"
+    },
+    "quality": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Quality",
+      "type": "number"
+    }
+  },
+  "required": [
+    "id",
+    "source_case_ids",
+    "source_question_ids",
+    "applicable_topics",
+    "applicable_technology_families",
+    "trigger_claim_types",
+    "trigger_answer_features",
+    "attack_dimension",
+    "challenge_operator",
+    "abstract_pattern",
+    "next_intents",
+    "support_count",
+    "quality"
+  ],
+  "title": "ProbePattern",
+  "type": "object"
+}

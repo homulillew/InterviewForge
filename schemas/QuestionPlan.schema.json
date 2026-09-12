@@ -1,0 +1,142 @@
+{
+  "$defs": {
+    "ChallengeOperator": {
+      "enum": [
+        "WHY_NECESSARY",
+        "WHY_NOT_SIMPLER",
+        "WHY_NOT_ALTERNATIVE",
+        "MECHANISM_PRESSURE",
+        "IMPLEMENTATION_PRESSURE",
+        "OWNERSHIP_PRESSURE",
+        "METRIC_PRESSURE",
+        "BASELINE_PRESSURE",
+        "FAILURE_PRESSURE",
+        "BOUNDARY_PRESSURE",
+        "SCALE_PRESSURE",
+        "DEBUG_PRESSURE",
+        "COUNTEREXAMPLE",
+        "CONSISTENCY_PRESSURE",
+        "FUNDAMENTAL_DRILL"
+      ],
+      "title": "ChallengeOperator",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "claim_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Claim Id",
+      "type": "string"
+    },
+    "attack_surface_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Attack Surface Id",
+      "type": "string"
+    },
+    "operator": {
+      "$ref": "#/$defs/ChallengeOperator"
+    },
+    "target_concept": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Target Concept",
+      "type": "string"
+    },
+    "alternative": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Alternative"
+    },
+    "assumptions_to_test": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Assumptions To Test",
+      "type": "array"
+    },
+    "expected_points": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Expected Points",
+      "type": "array"
+    },
+    "followup_candidates": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Followup Candidates",
+      "type": "array"
+    },
+    "corpus_match_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Corpus Match Ids",
+      "type": "array"
+    },
+    "pattern_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Pattern Ids",
+      "type": "array"
+    },
+    "transition_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Transition Ids",
+      "type": "array"
+    },
+    "style_profile_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Style Profile Id"
+    },
+    "style_backoff_path": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Style Backoff Path",
+      "type": "array"
+    },
+    "adaptation_reason": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Adaptation Reason",
+      "type": "string"
+    },
+    "previous_answer_trigger": {
+      "default": "",
+      "title": "Previous Answer Trigger",
+      "type": "string"
+    }
+  },
+  "required": [
+    "claim_id",
+    "attack_surface_id",
+    "operator",
+    "target_concept",
+    "adaptation_reason"
+  ],
+  "title": "QuestionPlan",
+  "type": "object"
+}

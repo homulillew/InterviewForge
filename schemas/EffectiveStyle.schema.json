@@ -1,0 +1,78 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Id"
+    },
+    "sample_size": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Sample Size",
+      "type": "integer"
+    },
+    "confidence": {
+      "default": 0,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "profile_weights": {
+      "additionalProperties": {
+        "maximum": 1,
+        "minimum": 0,
+        "type": "number"
+      },
+      "title": "Profile Weights",
+      "type": "object"
+    },
+    "backoff_path": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Backoff Path",
+      "type": "array"
+    },
+    "operator_distribution": {
+      "additionalProperties": {
+        "maximum": 1,
+        "minimum": 0,
+        "type": "number"
+      },
+      "title": "Operator Distribution",
+      "type": "object"
+    },
+    "transition_distribution": {
+      "additionalProperties": {
+        "maximum": 1,
+        "minimum": 0,
+        "type": "number"
+      },
+      "title": "Transition Distribution",
+      "type": "object"
+    },
+    "median_chain_depth": {
+      "default": 3,
+      "minimum": 0,
+      "title": "Median Chain Depth",
+      "type": "number"
+    },
+    "question_length_median": {
+      "default": 60,
+      "minimum": 0,
+      "title": "Question Length Median",
+      "type": "number"
+    }
+  },
+  "title": "EffectiveStyle",
+  "type": "object"
+}

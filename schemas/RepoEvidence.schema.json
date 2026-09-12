@@ -71,11 +71,11 @@
       "title": "Confidence",
       "type": "number"
     },
-    "supports_claim": {
+    "related_claim_ids": {
       "items": {
         "type": "string"
       },
-      "title": "Supports Claim",
+      "title": "Related Claim Ids",
       "type": "array"
     },
     "limitations": {

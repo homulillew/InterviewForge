@@ -1,18 +1,18 @@
 {
   "$defs": {
-    "Dimension": {
+    "ClaimType": {
       "enum": [
-        "Problem Understanding",
-        "Mechanism Understanding",
-        "Technology Decision",
-        "Implementation / Engineering",
-        "Trade-off Awareness",
-        "Failure Handling",
-        "Evaluation / Measurement",
-        "Scaling",
-        "Ownership"
+        "implementation",
+        "architecture",
+        "technology_choice",
+        "outcome",
+        "metric",
+        "ownership",
+        "scale",
+        "reliability",
+        "optimization"
       ],
-      "title": "Dimension",
+      "title": "ClaimType",
       "type": "string"
     },
     "MasteryState": {
@@ -72,8 +72,22 @@
       "title": "Proposition",
       "type": "string"
     },
-    "dimension": {
-      "$ref": "#/$defs/Dimension"
+    "claim_type": {
+      "$ref": "#/$defs/ClaimType"
+    },
+    "technologies": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Technologies",
+      "type": "array"
+    },
+    "concepts": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Concepts",
+      "type": "array"
     },
     "topic": {
       "maxLength": 16000,
@@ -142,11 +156,11 @@
     "id",
     "statement_id",
     "proposition",
-    "dimension",
+    "claim_type",
     "topic",
     "project",
     "source_quote"
   ],
-  "title": "CapabilityClaim",
+  "title": "AtomicClaim",
   "type": "object"
 }

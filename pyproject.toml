@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "interview-forge"
-version = "0.3.0"
+version = "0.3.1"
 description = "Evidence-grounded adversarial interviews and targeted learning"
 readme = "README.md"
 requires-python = ">=3.11"

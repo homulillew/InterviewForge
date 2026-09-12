@@ -1,83 +1,89 @@
-# InterviewForge architecture
+# Corpus-grounded adversarial interviewer architecture
 
-## Contract
+Package 0.3.1, session schema 2.0, corpus SQLite schema 1. Baseline and design decisions are in
+[corpus-harness-design.md](corpus-harness-design.md); executable models are in `schemas/models.py`
+and `corpus/models.py`.
 
-Resume statements are source text; claims are falsifiable capability propositions.
-Repository observations retain paths, lines, hashes and exact excerpts. Imported
-interview experiences and reference answers retain their document origin.
+## Inputs and the two-agent boundary
 
-The answerer produces natural candidate speech and a separate audit trail. Missing
-implementation context can be completed through technical reasoning and specific
-experiment plans. Audit records distinguish source observations, resume assertions,
-external references and inferred details. Simulation assesses answerability; human
-retest evidence establishes mastery.
+ResumeStatement is original text. AtomicClaim is an actual assertion with claim_type,
+technologies and concepts; it has no Dimension. AttackSurface owns Dimension, relevance,
+priority and persisted coverage. Risk ranks assertions; utility ranks useful surfaces.
 
-## Pipeline
+Only Interviewer and RepositoryAnswerer are agents. Corpus normalization, deduplication,
+chains, pattern compilation, retrieval, AttackPlanner, QuestionPlanner, AnswerCritic,
+knowledge extraction/compression, learning and grading are services, even when a service
+uses the configured model for a bounded structured operation.
 
-1. Import images and documents into a persistent material library. Readers return
-   source blocks; offline or structured model extraction creates questions, answers,
-   explicit follow-ups and topics. Validate quotations against source locations.
-2. Extract source-bound claims from resume/JD and compute explainable risk.
-3. Read a bounded repository snapshot without executing target code. Record excerpts,
-   symbols, hashes, coverage limitations and claim relevance.
-4. On each turn, retrieve live interview material matching the claim/JD. Interviewer
-   receives claims, spoken history and question seeds, including existing follow-ups.
-   It receives no repository excerpts/paths, reference answers or answer audit.
-5. Retrieve reference answers for the chosen question. Answerer combines claim context,
-   bounded source evidence and reference material. Direct speech develops a coherent
-   design and validation story; reasoning basis, inference and experiment plans are
-   separate typed fields. Source citations must refer to supplied records.
-6. Commit the completed turn and selected material snapshots together. Track claim
-   depth, coverage and novelty; route further questions from prior answer signals.
-7. Merge anchored knowledge into a graph and derive focused exercises. Default learning
-   includes P0/P1 concepts at distance <= 1. Review distinguishes material and mastery gaps.
-8. Human retest saves a question before revealing references. Save the human answer
-   before model feedback; retry feedback independently. Readiness requires two distinct
-   recent assessed answers passing explicit human review.
+| Recipient | Allowed input | Excluded input |
+|---|---|---|
+| Interviewer renderer | Allowlisted resume assertion, surface, plan, abstract operators, statistics, spoken history | Source paths/excerpts/IDs, repository map, blue audit, raw corpus questions |
+| AnswerCritic | Resume assertion, question, expected facets, current/prior speech | Repository evidence, source coverage, blue signals and audit |
+| RepositoryAnswerer model | Question ID/text, atomic resume assertion, bounded static excerpts | Corpus, style, operators, plans, transitions, reference-answer documents |
 
-## Components
+The engine supplies only operator abstractions to the renderer. Raw corpus wording stays in
+the local controller for the copy guard. The controller owns IDs/provenance; renderer output
+is only RenderedQuestion. Guards reject trivia, missing resume anchor, unrelated recognized
+technology, invented numeric/selected architectural premises, multiple main questions,
+exact/near repeats and normalized 24-character copying. These checks do not prove arbitrary
+natural-language factuality; model quality review remains necessary.
 
-Exactly two autonomous classes: Interviewer and RepositoryAnswerer. Document reading,
-material extraction/retrieval, graph merging, grading and report rendering are services.
-Pydantic models define the executable contracts; argparse provides the CLI.
+## Corpus and retrieval
 
-The material package is standalone and does not import session schemas. `MaterialState`
-contains documents and items, while session `materials` contains selected immutable
-item snapshots. Kind checks keep interview question seeds and reference answers in
-their appropriate input paths. External references do not become repository evidence.
+`corpus/normalize.py` reads heterogeneous post shapes using shared document readers. Explicit
+metadata is preserved; missing company/round stays unknown. Ordered lists teach sequence at
+lower confidence; answer-conditioned transitions require actual candidate answer context;
+unordered summaries contribute no invented chains. Repeated posts share duplicate groups.
 
-`LLMClient` supports text and structured generation; the compatible adapter also
-supports image transcription. Offline mode uses deterministic Redis/RAG/service
-curricula and lexical material retrieval. OCR uses local Tesseract or configured vision,
-with bounded file/page/text processing.
+`storage.py` owns FTS5, normalized tables and full compiled revision payloads. Transactions use
+BEGIN IMMEDIATE and compare-and-swap current revision. UUID identifies the database; SHA-256
+verifies immutable revision content. Ingest replaces normalized records from changed files,
+archives prior compiled revisions, and commits a whole batch. Rebuild recompiles normalized
+records. Raw input files are not copied to session or distributions.
 
-## State and failure behavior
+Three APIs remain separate: content retrieval gates direct/transferable/style_only/reject and
+weights resume relevance above company; transition retrieval uses previous intent and spoken
+answer features; style retrieval blends sample-confidence-weighted hierarchical profiles.
+Duplicates count once in statistical profiles. No company-specific personality is hardcoded.
 
-Session `interview_state.json` and library `materials.json` are separate authoritative
-JSON stores, each protected by a process lock and atomic replacement. Other JSON and
-Markdown files are regenerable reports.
+AttackPlan selects assertion/surface and useful operator candidates. QuestionPlan records the
+target, alternative, assumptions, expected points, matches, patterns, transitions, style and
+adaptation reason. Rendering follows that plan. After answering, the red critic determines
+coverage and unresolved facets. Next surface utility considers risk, relevance, coverage,
+corpus support, style preference, answer trigger, repetition, novelty and depth limits.
 
-Reading/extraction completes before an import is committed. Content hash plus kind
-deduplicates imports. Writers reload the latest snapshot while holding the library lock
-to avoid lost updates. Multi-file import commits one document at a time.
+## Evidence, speech and learning
 
-A completed turn stores material snapshots with its references. Each new turn consults
-the attached live library, so imports become available immediately and removed items
-stop appearing in future retrieval. Historical snapshots continue to render citations.
-`attach-library` changes only the source for subsequent turns.
+Static scanning reads bounded text and AST without executing a target repository. Every
+lexical evidence association creates EvidenceRelation(relation=related). direct_support,
+partial_support, limitation and contradicts are explicit vocabulary for future reviewed
+relations; the scanner never assigns them. Implementation/config/validation/metric/ownership
+facets remain distinct from relevance. No performance result is proven by test source.
 
-Provider errors abort an uncommitted turn or document; earlier commits survive.
-Human submissions survive grading failure. Reset archives prior session history and
-does not delete the project repository.
+Answer serializes `spoken_answer` separately from reasoning_basis, inferred_details,
+experiment_plan, source selection and unsupported_claims. Python read access to
+`direct_interview_answer` remains a compatibility property. The red critic reads speech only.
+MaterialGap and AnswerGap do not establish a human MasteryGap.
 
-## Outputs and limits
+Knowledge extraction adds at most four nodes per model turn, two opportunities in the offline
+baseline. Canonical aliases and title matching merge concepts and retain provenance. Study
+cards contain answered FollowupQA. Greedy weighted set cover combines related nodes into
+exercises; human gaps retain their own review/recovery evidence.
 
-`transcript.md` and `best_answer_cards.md` contain natural spoken answers.
-`answer_audit.md/.json` records source reasoning, inferred details, experiment plans and
-unverified assertions. `material_usage.json` links actual citations to question/turn IDs;
-session `materials.json` exports the corresponding context snapshots.
+## Persistence and migration
 
-Text scanning and Python AST are not full program analysis. A source excerpt establishes
-source text, and experiment parameters are not measurements. Imported results belong to
-their source author. Schema and lexical checks constrain errors but cannot establish
-arbitrary natural-language correctness or replace real model quality evaluation.
+`interview_state.json` is authoritative, process-locked and atomically replaced. A turn is
+committed only after renderer, answerer, critic and knowledge stages succeed. Exported reports
+are disposable views. Sessions store a corpus pin and small used match/transition references,
+not complete corpus records. Provider/model configuration persists with the session. Every
+turn verifies database identity, revision integrity and effective style against the pinned
+revision. New ingest affects only new sessions. Reset archives state and retains the pin.
+
+`migrate-session` validates the separate legacy model, maps old dimension-bearing claims to
+re-extracted assertions/surfaces, preserves spoken history and human work, archives original
+bytes and saves schema 2.0. Unknown historical corpus provenance is labeled migration.
+Historical material snapshots remain archival, never new runtime context.
+
+Human retest persists submission before generating reference/assessment. Failed feedback is
+resumable and cannot overwrite the saved answer. Two distinct latest assessed answers must
+pass actual human review for readiness. New assessment or downgrade invalidates old readiness.

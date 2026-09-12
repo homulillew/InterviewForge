@@ -1,0 +1,31 @@
+{
+  "cases": [
+    {"title": "Synthetic Redis interview A", "company": "bytedance", "role": "backend", "round": "tech-2", "questions": [
+      {"question": "为什么使用 Redis Lua 扣减库存？", "answer": "因为 Redis 快。"},
+      {"question": "快在哪里，如何证明吞吐提升？", "answer": "先固定资源，再做对照测试。"},
+      {"question": "怎样设置 Redis 与数据库条件更新的公平基线？"},
+      {"question": "Redis 响应丢失后如何处理重复扣减？"}
+    ]},
+    {"title": "Synthetic RAG interview B", "company": "tencent", "role": "ai-engineer", "round": "tech-2", "questions": [
+      {"question": "为什么需要在 RAG 中引入 reranker？", "answer": "排序质量有提升。"},
+      {"question": "为什么不直接增加 top_k，比较一下两种方案？"},
+      {"question": "如何评测 reranker 的指标并排除数据泄漏？"},
+      {"question": "RAG 漏召回时重排还能补救吗？"}
+    ]},
+    {"title": "Synthetic Kafka trade-off C", "company": "bytedance", "role": "backend", "round": "tech-1", "questions": [
+      "为什么使用 Kafka 解耦订单处理？",
+      "为什么不直接使用线程池，哪个约束要求 Kafka？",
+      "Kafka 的重试和幂等如何配合？"
+    ]},
+    {"title": "Synthetic Transformer fundamentals D", "company": "bytedance", "role": "ai-engineer", "questions": [
+      "Transformer attention 为什么除以 sqrt(d_k)？",
+      "Transformer 的层归一化是什么？"
+    ]},
+    {"title": "Synthetic service interview E", "company": "alibaba", "role": "backend", "questions": [
+      {"question": "HTTP 超时为什么不能证明服务端没有执行？", "answer": "请求可能已经提交，只是响应没有到达。"},
+      {"question": "数据库连接断开后，如何恢复已提交操作的返回结果？"},
+      {"question": "如何验证数据库幂等约束在并发下有效？"}
+    ]},
+    {"title": "Synthetic unordered summary", "source_type": "unordered_summary", "text": "聊了项目、算法、Redis、Java 和数据库。没有记录具体问法和顺序。"}
+  ]
+}

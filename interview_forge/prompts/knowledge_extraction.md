@@ -8,3 +8,8 @@ nodes P0. Keep a one-sentence answer plus a concise 2–5 minute mechanism expla
 boundary, alternatives, common traps and two distinct scenario-based retest questions.
 No project assertions in general knowledge. Evidence IDs must come from the answer.
 Simulation never establishes mastery; leave mastery unknown. Return KnowledgeBatch JSON.
+Name canonical concepts, not interview dimensions: e.g. Redis Lua atomic execution,
+concurrency races, retry idempotency, controlled performance baselines. Merge aliases.
+Each node must include followup_qa with actual short answers, priority and distance;
+likely_followups without answers are insufficient study material. Keep provenance when
+compressing concepts and keep human mastery evidence separate from simulated fluency.

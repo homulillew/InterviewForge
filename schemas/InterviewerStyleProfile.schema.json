@@ -1,0 +1,140 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "company": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Company"
+    },
+    "role_family": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Role Family"
+    },
+    "round": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Round"
+    },
+    "seniority": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Seniority"
+    },
+    "sample_size": {
+      "minimum": 0,
+      "title": "Sample Size",
+      "type": "integer"
+    },
+    "median_chain_depth": {
+      "minimum": 0,
+      "title": "Median Chain Depth",
+      "type": "number"
+    },
+    "p75_chain_depth": {
+      "minimum": 0,
+      "title": "P75 Chain Depth",
+      "type": "number"
+    },
+    "probe_distribution": {
+      "additionalProperties": {
+        "maximum": 1,
+        "minimum": 0,
+        "type": "number"
+      },
+      "title": "Probe Distribution",
+      "type": "object"
+    },
+    "operator_distribution": {
+      "additionalProperties": {
+        "maximum": 1,
+        "minimum": 0,
+        "type": "number"
+      },
+      "title": "Operator Distribution",
+      "type": "object"
+    },
+    "transition_distribution": {
+      "additionalProperties": {
+        "maximum": 1,
+        "minimum": 0,
+        "type": "number"
+      },
+      "title": "Transition Distribution",
+      "type": "object"
+    },
+    "question_length_median": {
+      "minimum": 0,
+      "title": "Question Length Median",
+      "type": "number"
+    },
+    "style_features": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Style Features",
+      "type": "array"
+    },
+    "confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "parent_profile_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Parent Profile Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "sample_size",
+    "median_chain_depth",
+    "p75_chain_depth",
+    "probe_distribution",
+    "operator_distribution",
+    "transition_distribution",
+    "question_length_median",
+    "style_features",
+    "confidence"
+  ],
+  "title": "InterviewerStyleProfile",
+  "type": "object"
+}

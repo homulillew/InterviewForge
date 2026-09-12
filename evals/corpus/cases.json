@@ -1,0 +1,7 @@
+{"cases": [
+  {"id":"redis-metric", "resume":"# 库存服务\n使用 Redis Lua 实现库存扣减，解决并发超卖，吞吐提升40%。", "company":"bytedance", "role":"backend", "round":"tech-2", "expected_operators":["METRIC_PRESSURE"]},
+  {"id":"rag-transfer", "resume":"# 检索项目\n设计 RAG pipeline，引入 reranker 提升检索效果。", "company":"bytedance", "role":"ai-engineer", "expected_operators":["WHY_NOT_SIMPLER"]},
+  {"id":"service", "resume":"# 服务项目\n使用 Java 和 Spring Cloud 实现订单 API，设计超时重试和幂等处理。", "company":"alibaba", "role":"backend"},
+  {"id":"unknown-company", "resume":"使用 Redis Lua 实现库存扣减。", "company":"unknown", "role":"backend"},
+  {"id":"neutral-control", "resume":"使用 Redis Lua 实现库存扣减。", "company":"bytedance", "role":"backend", "style":"neutral"}
+]}

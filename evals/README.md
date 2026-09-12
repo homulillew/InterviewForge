@@ -1,36 +1,41 @@
-# Behavioral evals
+# Behavioral and corpus evaluations
 
-Run `pytest tests/test_evals_cli.py -q`. Fixtures under `examples/` are authored here.
+All committed cases are authored synthetic materials. User corpus and labels stay outside Git.
 
-| Case | Trigger | Expected behavior |
-|---|---|---|
-| Redis | Redis Lua prevents overselling, +40% claim | Atomicity, conditional SQL alternative, concurrent correctness; no file trivia; metric unverified |
-| RAG | Reranker improves retrieval | First-stage limits, quality evaluation, top_k/latency trade-offs; injected ranker not assumed cross-encoder |
-| Service | Resume claims circuit breaker, source only health endpoint | Circuit breaker claim unsupported; no “we implemented” fabrication |
-| Material import | Chinese PNG, scanned PDF, DOCX, TXT/MD | Extract questions/answers and source locations, deduplicate, preserve quoted text |
-| Live library | Import after starting an interview, then remove an earlier document | Next turn uses fresh questions; earlier source snapshots remain readable |
-| Reference answers | DOCX contains 200 concurrent requests, 3 replays, 50 ms timeout | Use those parameters coherently, retain reference IDs, replace canned experiment inputs |
-| Candidate voice | Resume extends beyond the available repository | Give concrete engineering and experiment reasoning; keep source gaps in separate audit |
+```bash
+interview-forge corpus ingest examples/corpus/synthetic.json --db .interviewforge/eval.sqlite3
+interview-forge eval corpus --corpus .interviewforge/eval.sqlite3 \
+  --cases evals/corpus/cases.json --output .interviewforge/evaluation/metrics.json
+python -m pytest -q
+```
 
-`tests/test_agents.py` probes dynamic branches and blind interviewer input;
-`tests/test_llm.py` sends requests to a local mock HTTP server and checks malformed output,
-failed-turn recovery and fabricated project claims. These are contract evals, not a live
-model-quality benchmark.
+The five corpus scenarios cover Redis metrics, RAG simpler-alternative transfer, generic
+service, missing company and neutral style. JSON/JSONL private case files can use `resume`,
+company/role/round/style/max_turns and expected_operators. The runner is offline and emits
+JSON plus Markdown. It does not call an external model or execute project code.
 
-`tests/test_materials_library.py` covers persistence, provenance, concurrent imports,
-Chinese retrieval and structured extraction; `tests/test_document_reader.py` includes
-real Chinese image and scanned-PDF OCR when the document extras, Tesseract language data,
-and Noto CJK font are installed. `tests/test_material_integration.py` tests live CLI
-imports, legacy sessions, source deletion, retest references and report separation.
-`tests/test_material_interviewer.py` checks source question classification and isolation;
-`tests/test_candidate_answers.py` checks reference use and direct candidate expression.
+| Metric | Status / interpretation |
+|---|---|
+| Atomic claim precision | manual_review_required |
+| Claim redundancy | normalized exact assertion duplicates |
+| Resume anchor rate | validated structural provenance, not semantic relevance |
+| Corpus grounding rate | used pattern/transition references |
+| Irrelevant question rate | manual_review_required |
+| Question copy rate | passed normalized 24-character copy guard; paraphrases require review |
+| Follow-up dependency | saved previous-answer trigger and prior turn link |
+| Repeat rate | normalized exact question repeats |
+| Evidence factuality / unsupported recall | manual_review_required |
+| Knowledge compression | canonical nodes / two baseline extraction opportunities per turn |
+| Study task compression | tasks / covered concept count |
+| Style confidence calibration | manual_review_required; effective heuristic confidence also reported |
 
-Run `bash scripts/run_material_demo.sh` in the activated environment for the authored
-PNG + DOCX workflow. See `sessions/material-demo/session/best_answer_cards.md` for spoken
-answers and `answer_audit.md` / `material_usage.json` for their sources and assumptions.
+`test_corpus.py` checks heterogeneous normalization, unknown metadata, observed/weak chains,
+duplicates, style backoff, applicability, transfer, FTS, atomic revisions and invalid sources.
+`test_corpus_harness.py` checks red/blue boundaries, quality guards, self-signal independence,
+coverage, compressed learning and eval output. `test_migration.py` preserves exact archives,
+historical speech and human reviewed mastery. Existing document/OCR, source scanning,
+transport, candidate voice and human recovery suites remain active. Obsolete live-reference
+injection tests were replaced with pin/isolation tests matching schema 2.0.
 
-For a configured semantic model, run the same examples with `--provider compatible` and
-review: claim faithfulness, evidence relevance, one main question, prior-answer dependency,
-mechanism correctness, useful reference adaptation, separate source audit, bounded knowledge expansion and
-retention of source links. Source-quote checks and lexical guards alone cannot prove
-semantic quality or immunity to all prompt injection. No live endpoint is required by CI.
+For actual model quality, use a configured compatible endpoint and independent human labels.
+Do not interpret synthetic rule-based success as real company-style generalization.

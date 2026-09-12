@@ -84,6 +84,7 @@
     "gap_kind": {
       "enum": [
         "material_gap",
+        "answer_gap",
         "mastery_gap"
       ],
       "title": "Gap Kind",
@@ -131,6 +132,26 @@
       ],
       "title": "Status",
       "type": "string"
+    },
+    "covers_node_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Covers Node Ids",
+      "type": "array"
+    },
+    "estimated_minutes": {
+      "default": 15,
+      "maximum": 120,
+      "minimum": 1,
+      "title": "Estimated Minutes",
+      "type": "integer"
+    },
+    "interview_value": {
+      "default": 1,
+      "minimum": 0,
+      "title": "Interview Value",
+      "type": "number"
     }
   },
   "required": [

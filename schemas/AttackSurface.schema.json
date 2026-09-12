@@ -1,0 +1,107 @@
+{
+  "$defs": {
+    "Dimension": {
+      "enum": [
+        "Problem Understanding",
+        "Mechanism Understanding",
+        "Technology Decision",
+        "Implementation / Engineering",
+        "Trade-off Awareness",
+        "Failure Handling",
+        "Evaluation / Measurement",
+        "Scaling",
+        "Ownership",
+        "Debugging",
+        "Fundamentals"
+      ],
+      "title": "Dimension",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "claim_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Claim Id",
+      "type": "string"
+    },
+    "dimension": {
+      "$ref": "#/$defs/Dimension"
+    },
+    "relevance": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Relevance",
+      "type": "number"
+    },
+    "priority": {
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "title": "Priority",
+      "type": "string"
+    },
+    "rationale": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "coverage": {
+      "default": "untouched",
+      "enum": [
+        "untouched",
+        "partial",
+        "covered",
+        "exhausted"
+      ],
+      "title": "Coverage",
+      "type": "string"
+    },
+    "question_count": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Question Count",
+      "type": "integer"
+    },
+    "last_turn_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Last Turn Id"
+    },
+    "corpus_support": {
+      "default": 0,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Corpus Support",
+      "type": "number"
+    }
+  },
+  "required": [
+    "id",
+    "claim_id",
+    "dimension",
+    "relevance",
+    "priority",
+    "rationale"
+  ],
+  "title": "AttackSurface",
+  "type": "object"
+}

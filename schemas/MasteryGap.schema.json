@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "mastery_gap",
+      "default": "mastery_gap",
+      "title": "Kind",
+      "type": "string"
+    },
+    "attempt_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Attempt Id",
+      "type": "string"
+    },
+    "description": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Description",
+      "type": "string"
+    }
+  },
+  "required": [
+    "attempt_id",
+    "description"
+  ],
+  "title": "MasteryGap",
+  "type": "object"
+}

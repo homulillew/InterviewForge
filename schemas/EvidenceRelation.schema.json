@@ -1,0 +1,65 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "evidence_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Evidence Id",
+      "type": "string"
+    },
+    "claim_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Claim Id",
+      "type": "string"
+    },
+    "relation": {
+      "default": "related",
+      "enum": [
+        "related",
+        "direct_support",
+        "partial_support",
+        "limitation",
+        "contradicts"
+      ],
+      "title": "Relation",
+      "type": "string"
+    },
+    "facets": {
+      "items": {
+        "enum": [
+          "implementation",
+          "config",
+          "validation",
+          "metric",
+          "ownership",
+          "architecture"
+        ],
+        "type": "string"
+      },
+      "title": "Facets",
+      "type": "array"
+    },
+    "confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "rationale": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Rationale",
+      "type": "string"
+    }
+  },
+  "required": [
+    "evidence_id",
+    "claim_id",
+    "facets",
+    "confidence",
+    "rationale"
+  ],
+  "title": "EvidenceRelation",
+  "type": "object"
+}

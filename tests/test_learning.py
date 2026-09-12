@@ -11,13 +11,13 @@ def test_graph_deduplicates_shared_concepts_and_keeps_provenance(session):
     advance(session)
     graph = session.knowledge_graph
     assert len({n.title for n in graph.nodes}) == len(graph.nodes)
-    shared = next(n for n in graph.nodes if "Race condition" in n.title)
+    shared = next(n for n in graph.nodes if "并发竞态" in n.title)
     assert shared.triggered_questions == ["q1", "q2"]
     assert shared.project_anchors
     graph2, new = merge_graph(graph, KnowledgeBatch(nodes=graph.nodes, edges=graph.edges))
     assert not new
     assert len(graph2.nodes) == len(graph.nodes)
-    assert "↗" in tree_view(graph)
+    assert shared.title in tree_view(graph)
 
 
 def test_graph_rejects_dangling_edges_and_tree_handles_cycle(session):
@@ -36,7 +36,7 @@ def test_tasks_are_gap_bound_and_learning_is_bounded(session):
     assert session.study_plan
     for task in session.study_plan:
         assert task.evidence_from_interview == ["t1"]
-        assert task.gap_kind == "material_gap"
+        assert task.gap_kind in {"material_gap", "answer_gap"}
         assert task.exercises[0].evidence_produced
     session.knowledge_graph.nodes[0].priority = "P3"
     cards, tasks = build_learning(session)

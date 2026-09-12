@@ -1,0 +1,100 @@
+{
+  "$defs": {
+    "ChallengeOperator": {
+      "enum": [
+        "WHY_NECESSARY",
+        "WHY_NOT_SIMPLER",
+        "WHY_NOT_ALTERNATIVE",
+        "MECHANISM_PRESSURE",
+        "IMPLEMENTATION_PRESSURE",
+        "OWNERSHIP_PRESSURE",
+        "METRIC_PRESSURE",
+        "BASELINE_PRESSURE",
+        "FAILURE_PRESSURE",
+        "BOUNDARY_PRESSURE",
+        "SCALE_PRESSURE",
+        "DEBUG_PRESSURE",
+        "COUNTEREXAMPLE",
+        "CONSISTENCY_PRESSURE",
+        "FUNDAMENTAL_DRILL"
+      ],
+      "title": "ChallengeOperator",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "covered_facets": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Covered Facets",
+      "type": "array"
+    },
+    "missing_facets": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Missing Facets",
+      "type": "array"
+    },
+    "vague_assertions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Vague Assertions",
+      "type": "array"
+    },
+    "new_assertions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "New Assertions",
+      "type": "array"
+    },
+    "contradictions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Contradictions",
+      "type": "array"
+    },
+    "answer_features": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Answer Features",
+      "type": "array"
+    },
+    "followup_operators": {
+      "items": {
+        "$ref": "#/$defs/ChallengeOperator"
+      },
+      "title": "Followup Operators",
+      "type": "array"
+    },
+    "suggested_next_surfaces": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Suggested Next Surfaces",
+      "type": "array"
+    },
+    "answer_quality": {
+      "default": 0,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Answer Quality",
+      "type": "number"
+    },
+    "novelty": {
+      "default": 1,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Novelty",
+      "type": "number"
+    }
+  },
+  "title": "AnswerCritique",
+  "type": "object"
+}

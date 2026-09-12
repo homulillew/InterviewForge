@@ -1,0 +1,88 @@
+{
+  "$defs": {
+    "ChallengeOperator": {
+      "enum": [
+        "WHY_NECESSARY",
+        "WHY_NOT_SIMPLER",
+        "WHY_NOT_ALTERNATIVE",
+        "MECHANISM_PRESSURE",
+        "IMPLEMENTATION_PRESSURE",
+        "OWNERSHIP_PRESSURE",
+        "METRIC_PRESSURE",
+        "BASELINE_PRESSURE",
+        "FAILURE_PRESSURE",
+        "BOUNDARY_PRESSURE",
+        "SCALE_PRESSURE",
+        "DEBUG_PRESSURE",
+        "COUNTEREXAMPLE",
+        "CONSISTENCY_PRESSURE",
+        "FUNDAMENTAL_DRILL"
+      ],
+      "title": "ChallengeOperator",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "claim_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Claim Id",
+      "type": "string"
+    },
+    "attack_surface_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Attack Surface Id",
+      "type": "string"
+    },
+    "goal": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Goal",
+      "type": "string"
+    },
+    "unresolved_facets": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Unresolved Facets",
+      "type": "array"
+    },
+    "preferred_operators": {
+      "items": {
+        "$ref": "#/$defs/ChallengeOperator"
+      },
+      "minItems": 1,
+      "title": "Preferred Operators",
+      "type": "array"
+    },
+    "rationale": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "utility": {
+      "default": 0,
+      "title": "Utility",
+      "type": "number"
+    },
+    "utility_factors": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Utility Factors",
+      "type": "object"
+    }
+  },
+  "required": [
+    "claim_id",
+    "attack_surface_id",
+    "goal",
+    "preferred_operators",
+    "rationale"
+  ],
+  "title": "AttackPlan",
+  "type": "object"
+}

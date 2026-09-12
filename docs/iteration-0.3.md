@@ -1,3 +1,5 @@
+> Historical schema 1.0 material-library documentation. Current runtime behavior: [v0.3.1](../docs/iteration-0.3.1.md); new sessions pin corpus and isolate the defender.
+
 # v0.3：随时追加面经，生成完整的候选人口述
 
 本轮把面经与参考回答接入已有双 Agent 面试闭环，并把候选人口述与来源审计拆开。

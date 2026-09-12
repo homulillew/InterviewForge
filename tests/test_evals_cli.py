@@ -24,9 +24,10 @@ def test_golden_end_to_end(scenario, tmp_path):
     assert (out/"next_round_plan.md").is_file()
     questions = " ".join(t.question.text for t in session.transcript)
     if scenario == "redis":
-        assert "原子性" in questions and "乐观锁" in questions
+        assert "Redis" in questions and "Lua" in questions
+        assert any(t.question.subtopic == "evaluation" for t in session.transcript)
     elif scenario == "rag":
-        assert "first-stage" in questions and "衡量" in questions and "top_k" in questions
+        assert "RAG" in questions and "reranker" in questions
     else:
         assert all("我们项目实现了熔断" not in t.answer.direct_interview_answer for t in session.transcript)
         assert any("熔断" in x for t in session.transcript for x in t.answer.unsupported_claims)
@@ -40,5 +41,5 @@ def test_cli_errors_have_nonzero_exit(tmp_path):
 
 def test_cli_schema_export(tmp_path):
     assert main(["schemas", "--output", str(tmp_path)]) == 0
-    assert (tmp_path/"CapabilityClaim.schema.json").is_file()
+    assert (tmp_path/"AtomicClaim.schema.json").is_file()
     assert (tmp_path/"InterviewSession.schema.json").is_file()

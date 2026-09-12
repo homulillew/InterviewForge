@@ -1,0 +1,30 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "revision": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Revision",
+      "type": "string"
+    },
+    "database_fingerprint": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Database Fingerprint",
+      "type": "string"
+    },
+    "profile_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Profile Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "revision",
+    "database_fingerprint"
+  ],
+  "title": "CorpusPin",
+  "type": "object"
+}

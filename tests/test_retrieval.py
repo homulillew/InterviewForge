@@ -9,7 +9,7 @@ from interview_forge.storage.session import SessionStore
 def evidence(session, id, path, excerpt, kind="implementation"):
     return session.evidences[0].model_copy(update={
         "id": id, "file_path": path, "excerpt": excerpt, "line_start": 1,
-        "line_end": len(excerpt.splitlines()), "supports_claim": [session.claims[0].id],
+        "line_end": len(excerpt.splitlines()), "related_claim_ids": [session.claims[0].id],
         "evidence_type": kind,
     })
 
@@ -37,7 +37,7 @@ def test_relevant_late_file_beats_alphabetical_noise(session):
 def test_budget_and_claim_scope_are_respected(session):
     q = question(session)
     unrelated = evidence(session, "other", "other.py", "redis retry idempotency request_id")
-    unrelated.supports_claim = ["another_claim"]
+    unrelated.related_claim_ids = ["another_claim"]
     large = evidence(session, "large", "large.py", "redis retry request_id " * 30)
     small = evidence(session, "small", "small.py", "redis retry")
     selected, matches = select_evidence(q, session.claims[0], [unrelated, large, small], max_chars=50)

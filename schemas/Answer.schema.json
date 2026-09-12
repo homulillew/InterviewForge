@@ -32,6 +32,28 @@
       ],
       "title": "EvidenceMatch",
       "type": "object"
+    },
+    "MaterialGap": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "material_gap",
+          "default": "material_gap",
+          "title": "Kind",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "title": "MaterialGap",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -42,10 +64,10 @@
       "title": "Question Id",
       "type": "string"
     },
-    "direct_interview_answer": {
+    "spoken_answer": {
       "maxLength": 16000,
       "minLength": 1,
-      "title": "Direct Interview Answer",
+      "title": "Spoken Answer",
       "type": "string"
     },
     "evidence_selection": {
@@ -169,11 +191,18 @@
       ],
       "title": "Provenance",
       "type": "string"
+    },
+    "material_gaps": {
+      "items": {
+        "$ref": "#/$defs/MaterialGap"
+      },
+      "title": "Material Gaps",
+      "type": "array"
     }
   },
   "required": [
     "question_id",
-    "direct_interview_answer",
+    "spoken_answer",
     "technical_explanation",
     "technology_decision",
     "failure_modes",

@@ -18,7 +18,7 @@ def test_persistence_pause_resume_and_archive(session, tmp_path):
         advance(loaded)
     loaded.status = "running"
     advance(loaded)
-    assert loaded.transcript[1].question.based_on_turn == "t1"
+    assert loaded.transcript[1].question.provenance.attack_surface_id
     reset = store.archive_reset(loaded)
     assert not reset.transcript
     assert list((store.directory/"archives").glob("*.json"))

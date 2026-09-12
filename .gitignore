@@ -11,3 +11,12 @@ sessions/
 .interviewforge.lock
 
 .interviewforge/
+
+# User-owned corpus and evaluation data are local; synthetic fixtures are explicit.
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+raw-corpus/
+corpus-data/
+private-materials/

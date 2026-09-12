@@ -1,3 +1,5 @@
+> Historical schema 1.0 material-library documentation. Current runtime behavior: [v0.3.1](../docs/iteration-0.3.1.md); new sessions pin corpus and isolate the defender.
+
 # Reproducible demos
 
 Run from the project root after installation:

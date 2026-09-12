@@ -1,0 +1,776 @@
+{
+  "$defs": {
+    "ChallengeOperator": {
+      "enum": [
+        "WHY_NECESSARY",
+        "WHY_NOT_SIMPLER",
+        "WHY_NOT_ALTERNATIVE",
+        "MECHANISM_PRESSURE",
+        "IMPLEMENTATION_PRESSURE",
+        "OWNERSHIP_PRESSURE",
+        "METRIC_PRESSURE",
+        "BASELINE_PRESSURE",
+        "FAILURE_PRESSURE",
+        "BOUNDARY_PRESSURE",
+        "SCALE_PRESSURE",
+        "DEBUG_PRESSURE",
+        "COUNTEREXAMPLE",
+        "CONSISTENCY_PRESSURE",
+        "FUNDAMENTAL_DRILL"
+      ],
+      "title": "ChallengeOperator",
+      "type": "string"
+    },
+    "ClaimType": {
+      "enum": [
+        "implementation",
+        "architecture",
+        "technology_choice",
+        "outcome",
+        "metric",
+        "ownership",
+        "scale",
+        "reliability",
+        "optimization"
+      ],
+      "title": "ClaimType",
+      "type": "string"
+    },
+    "CorpusQuestion": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "case_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Case Id",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "topic": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Topic",
+          "type": "array"
+        },
+        "probe_intent": {
+          "$ref": "#/$defs/ProbeIntent"
+        },
+        "challenge_operator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChallengeOperator"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "order": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Order"
+        },
+        "previous_question_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Previous Question Id"
+        },
+        "answer_context": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Answer Context"
+        },
+        "answer_feature": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Answer Feature",
+          "type": "array"
+        },
+        "confidence": {
+          "default": 0.6,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "case_id",
+        "text",
+        "probe_intent"
+      ],
+      "title": "CorpusQuestion",
+      "type": "object"
+    },
+    "Dimension": {
+      "enum": [
+        "Problem Understanding",
+        "Mechanism Understanding",
+        "Technology Decision",
+        "Implementation / Engineering",
+        "Trade-off Awareness",
+        "Failure Handling",
+        "Evaluation / Measurement",
+        "Scaling",
+        "Ownership",
+        "Debugging",
+        "Fundamentals"
+      ],
+      "title": "Dimension",
+      "type": "string"
+    },
+    "InterviewCase": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "source_file": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Source File",
+          "type": "string"
+        },
+        "source_type": {
+          "enum": [
+            "trace",
+            "ordered_list",
+            "unordered_summary"
+          ],
+          "title": "Source Type",
+          "type": "string"
+        },
+        "source_hash": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Source Hash",
+          "type": "string"
+        },
+        "source_locations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Locations",
+          "type": "array"
+        },
+        "reader_warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reader Warnings",
+          "type": "array"
+        },
+        "normalized_hash": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Normalized Hash",
+          "type": "string"
+        },
+        "company": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Company"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "round": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Round"
+        },
+        "seniority": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Seniority"
+        },
+        "company_confidence": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Company Confidence",
+          "type": "number"
+        },
+        "role_confidence": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Role Confidence",
+          "type": "number"
+        },
+        "round_confidence": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Round Confidence",
+          "type": "number"
+        },
+        "resume_context": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Resume Context",
+          "type": "array"
+        },
+        "project_context": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Project Context",
+          "type": "array"
+        },
+        "technologies": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Technologies",
+          "type": "array"
+        },
+        "questions": {
+          "items": {
+            "$ref": "#/$defs/CorpusQuestion"
+          },
+          "title": "Questions",
+          "type": "array"
+        },
+        "chains": {
+          "items": {
+            "$ref": "#/$defs/QuestionChain"
+          },
+          "title": "Chains",
+          "type": "array"
+        },
+        "case_quality": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Case Quality",
+          "type": "number"
+        },
+        "duplicate_group": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duplicate Group"
+        },
+        "record_index": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Record Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "source_file",
+        "source_type",
+        "source_hash",
+        "normalized_hash"
+      ],
+      "title": "InterviewCase",
+      "type": "object"
+    },
+    "InterviewerStyleProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "company": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Company"
+        },
+        "role_family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role Family"
+        },
+        "round": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Round"
+        },
+        "seniority": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Seniority"
+        },
+        "sample_size": {
+          "minimum": 0,
+          "title": "Sample Size",
+          "type": "integer"
+        },
+        "median_chain_depth": {
+          "minimum": 0,
+          "title": "Median Chain Depth",
+          "type": "number"
+        },
+        "p75_chain_depth": {
+          "minimum": 0,
+          "title": "P75 Chain Depth",
+          "type": "number"
+        },
+        "probe_distribution": {
+          "additionalProperties": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "title": "Probe Distribution",
+          "type": "object"
+        },
+        "operator_distribution": {
+          "additionalProperties": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "title": "Operator Distribution",
+          "type": "object"
+        },
+        "transition_distribution": {
+          "additionalProperties": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "title": "Transition Distribution",
+          "type": "object"
+        },
+        "question_length_median": {
+          "minimum": 0,
+          "title": "Question Length Median",
+          "type": "number"
+        },
+        "style_features": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Style Features",
+          "type": "array"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "parent_profile_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Parent Profile Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "sample_size",
+        "median_chain_depth",
+        "p75_chain_depth",
+        "probe_distribution",
+        "operator_distribution",
+        "transition_distribution",
+        "question_length_median",
+        "style_features",
+        "confidence"
+      ],
+      "title": "InterviewerStyleProfile",
+      "type": "object"
+    },
+    "ProbeIntent": {
+      "enum": [
+        "problem",
+        "mechanism",
+        "decision",
+        "implementation",
+        "ownership",
+        "evaluation",
+        "failure",
+        "boundary",
+        "scaling",
+        "debugging",
+        "fundamentals"
+      ],
+      "title": "ProbeIntent",
+      "type": "string"
+    },
+    "ProbePattern": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "source_case_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Case Ids",
+          "type": "array"
+        },
+        "source_question_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Question Ids",
+          "type": "array"
+        },
+        "applicable_topics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Applicable Topics",
+          "type": "array"
+        },
+        "applicable_technology_families": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Applicable Technology Families",
+          "type": "array"
+        },
+        "trigger_claim_types": {
+          "items": {
+            "$ref": "#/$defs/ClaimType"
+          },
+          "title": "Trigger Claim Types",
+          "type": "array"
+        },
+        "trigger_answer_features": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Trigger Answer Features",
+          "type": "array"
+        },
+        "attack_dimension": {
+          "$ref": "#/$defs/Dimension"
+        },
+        "challenge_operator": {
+          "$ref": "#/$defs/ChallengeOperator"
+        },
+        "abstract_pattern": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Abstract Pattern",
+          "type": "string"
+        },
+        "next_intents": {
+          "items": {
+            "$ref": "#/$defs/ProbeIntent"
+          },
+          "title": "Next Intents",
+          "type": "array"
+        },
+        "support_count": {
+          "minimum": 1,
+          "title": "Support Count",
+          "type": "integer"
+        },
+        "quality": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Quality",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "source_case_ids",
+        "source_question_ids",
+        "applicable_topics",
+        "applicable_technology_families",
+        "trigger_claim_types",
+        "trigger_answer_features",
+        "attack_dimension",
+        "challenge_operator",
+        "abstract_pattern",
+        "next_intents",
+        "support_count",
+        "quality"
+      ],
+      "title": "ProbePattern",
+      "type": "object"
+    },
+    "QuestionChain": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "case_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Case Id",
+          "type": "string"
+        },
+        "question_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Question Ids",
+          "type": "array"
+        },
+        "topic": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Topic",
+          "type": "array"
+        },
+        "depth": {
+          "minimum": 0,
+          "title": "Depth",
+          "type": "integer"
+        },
+        "quality": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Quality",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "case_id",
+        "question_ids",
+        "depth",
+        "quality"
+      ],
+      "title": "QuestionChain",
+      "type": "object"
+    },
+    "QuestionTransition": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "from_question_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "From Question Id"
+        },
+        "from_intent": {
+          "$ref": "#/$defs/ProbeIntent"
+        },
+        "candidate_answer_features": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Candidate Answer Features",
+          "type": "array"
+        },
+        "trigger_summary": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Trigger Summary",
+          "type": "string"
+        },
+        "to_intent": {
+          "$ref": "#/$defs/ProbeIntent"
+        },
+        "challenge_operator": {
+          "$ref": "#/$defs/ChallengeOperator"
+        },
+        "example_question_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Example Question Id",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "source_case_id": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Source Case Id",
+          "type": "string"
+        },
+        "observed_answer": {
+          "default": false,
+          "title": "Observed Answer",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "from_intent",
+        "trigger_summary",
+        "to_intent",
+        "challenge_operator",
+        "example_question_id",
+        "confidence",
+        "source_case_id"
+      ],
+      "title": "QuestionTransition",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "cases": {
+      "items": {
+        "$ref": "#/$defs/InterviewCase"
+      },
+      "title": "Cases",
+      "type": "array"
+    },
+    "transitions": {
+      "items": {
+        "$ref": "#/$defs/QuestionTransition"
+      },
+      "title": "Transitions",
+      "type": "array"
+    },
+    "patterns": {
+      "items": {
+        "$ref": "#/$defs/ProbePattern"
+      },
+      "title": "Patterns",
+      "type": "array"
+    },
+    "style_profiles": {
+      "items": {
+        "$ref": "#/$defs/InterviewerStyleProfile"
+      },
+      "title": "Style Profiles",
+      "type": "array"
+    }
+  },
+  "required": [
+    "cases",
+    "transitions",
+    "patterns",
+    "style_profiles"
+  ],
+  "title": "CompiledCorpus",
+  "type": "object"
+}

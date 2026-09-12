@@ -1,13 +1,17 @@
 # Adaptive depth and stop conditions
 
-L0 ownership; L1 implementation; L2 mechanism; L3 design choice; L4 measurement;
-L5 failure; L6 debugging; L7 scale; L8 fundamentals; L9 counterfactual.
-Depth is the chain position, not the same as the reasoning level.
+L0 ownership; L1 implementation/problem; L2 mechanism; L3 design choice; L4 measurement;
+L5 failure; L6 debugging; L7 scale; L8 fundamentals; L9 boundary/counterexample.
+Depth is the claim's chain position, separate from the reasoning level.
 
-Route from a real previous-answer signal. Vague -> concrete example; API-only -> mechanism;
-no application -> implementation; no choice rationale -> alternatives; no measurement ->
-validation. Strong answers permit another subtopic. Do not ask all ten levels mechanically.
+AnswerCritic evaluates spoken text only: missing facets, vague/new assertions,
+contradictions, answer features, quality and novelty. “Redis is faster” without a baseline
+should trigger causal mechanism, original bottleneck or measurement pressure. Never route
+from blue self-signals, evidence availability or the blue agent's suggested questions.
 
-Default limit is five turns per claim. Up to ten may be explicitly configured for deep
-chains. Stop at the session budget, exhausted claims or two turns without a new knowledge
-node in the current chain. Novelty by node title is a practical bound, not a semantic proof.
+Surface utility combines assertion risk, relevance, unanswered importance, corpus support,
+statistical style, spoken trigger and repetition. Strong answers and low novelty favor
+switching to another useful surface. Persist untouched/partial/covered/exhausted coverage.
+Default claim depth is five; configured maximum is ten. Stop when the total turn budget
+is reached or no useful unexhausted surface remains within depth limits. Corpus-style depth
+is a weak preference, not a forced number of follow-ups.

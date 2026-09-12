@@ -1,5 +1,46 @@
 {
   "$defs": {
+    "FollowupQA": {
+      "additionalProperties": false,
+      "properties": {
+        "question": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Question",
+          "type": "string"
+        },
+        "answer": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Answer",
+          "type": "string"
+        },
+        "priority": {
+          "default": "P1",
+          "enum": [
+            "P0",
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "interview_distance": {
+          "default": 1,
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Interview Distance",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "question",
+        "answer"
+      ],
+      "title": "FollowupQA",
+      "type": "object"
+    },
     "KnowledgeEdge": {
       "additionalProperties": false,
       "properties": {
@@ -197,6 +238,13 @@
             "type": "string"
           },
           "title": "Evidence",
+          "type": "array"
+        },
+        "followup_qa": {
+          "items": {
+            "$ref": "#/$defs/FollowupQA"
+          },
+          "title": "Followup Qa",
           "type": "array"
         }
       },

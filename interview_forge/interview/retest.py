@@ -3,9 +3,9 @@ from interview_forge.agents.repository_answerer import RepositoryAnswerer
 from interview_forge.curricula import TOPICS, topic_for
 from interview_forge.learning.planner import build_learning
 from interview_forge.llm import prompt
-from interview_forge.interview.material_context import material_context, merge_snapshots
+from interview_forge.schemas.models import QuestionPlan, QuestionProvenance, ChallengeOperator
 from interview_forge.schemas.models import (
-    Assessment, Dimension, InterviewQuestion, InterviewSession, MasteryState,
+    Assessment, InterviewQuestion, InterviewSession, MasteryState,
     RetestAttempt, reviewed_ready,
 )
 
@@ -29,8 +29,16 @@ def begin_retest(session, node_id: str | None = None):
     questions = node.retest_questions or node.practice_questions
     if not questions:
         raise ValueError("Node has no retest questions")
-    question = InterviewQuestion(id=f"rq{len(session.retests)+1}", claim_id=node.source_claims[0],
-        text=questions[attempts % len(questions)], dimension=Dimension.mechanism, level=8, depth=0,
+    claim = next(c for c in session.claims if c.id == node.source_claims[0])
+    surface = next(s for s in session.attack_surfaces if s.claim_id == claim.id)
+    plan = QuestionPlan(claim_id=claim.id, attack_surface_id=surface.id,
+        operator=ChallengeOperator.FUNDAMENTAL_DRILL, target_concept=node.title,
+        adaptation_reason="Human retest anchored to a previously studied concept")
+    provenance = QuestionProvenance(resume_statement_id=claim.statement_id, atomic_claim_id=claim.id,
+        attack_surface_id=surface.id, challenge_operator=plan.operator,
+        adaptation_reason=plan.adaptation_reason, origin="human_retest")
+    question = InterviewQuestion(plan=plan, provenance=provenance, id=f"rq{len(session.retests)+1}", claim_id=node.source_claims[0],
+        text=questions[attempts % len(questions)], dimension=surface.dimension, level=8, depth=0,
         subtopic=node.title, rationale="独立回答后才显示参考答案；复测知识节点 " + node.id,
         expected_points=[node.interview_one_liner, "机制", "边界", "验证"])
     retest = RetestAttempt(id=f"r{len(session.retests)+1}", node_id=node.id, question=question)
@@ -80,12 +88,8 @@ def grade_retest(session, client=None, attempt_id=None):
         return session, pending  # Explicit repeated requests are idempotent.
     claim = next(c for c in session.claims if c.id == pending.question.claim_id)
     node = next(n for n in session.knowledge_graph.nodes if n.id == pending.node_id)
-    answer_materials = material_context(session, pending.question.text + " " + claim.source_quote,
-        "answer", focus=claim.topic)
     reference = pending.reference or RepositoryAnswerer(client).answer(
-        pending.question, claim, session.evidences, reference_materials=answer_materials)
-    # Add citation snapshots to a detached state; a failed model call must not mutate caller state.
-    session = InterviewSession.model_validate({**session.model_dump(), "materials": merge_snapshots(session, answer_materials)})
+        pending.question, claim, session.evidences)
     assessment = pending.assessment
     if assessment is None:
         if client:

@@ -4,7 +4,56 @@ recursive-include rules *.md
 recursive-include references *.md
 recursive-include templates *.md
 recursive-include prompts *.md
-recursive-include examples *.md *.json *.py *.lua *.txt *.png *.jpg *.jpeg *.webp *.docx *.pdf
 recursive-include schemas *.json
 recursive-include evals *.md
 recursive-include scripts *.sh
+include examples/README.md
+include examples/demo-output/answer_audit.json
+include examples/demo-output/answer_audit.md
+include examples/demo-output/best_answer_cards.md
+include examples/demo-output/claim_risk_report.md
+include examples/demo-output/claims.json
+include examples/demo-output/evidences.json
+include examples/demo-output/followup_chains.md
+include examples/demo-output/interview_state.json
+include examples/demo-output/jd.md
+include examples/demo-output/knowledge_gap_report.md
+include examples/demo-output/knowledge_graph.json
+include examples/demo-output/knowledge_tree.md
+include examples/demo-output/material_usage.json
+include examples/demo-output/materials.json
+include examples/demo-output/next_round_plan.md
+include examples/demo-output/post_interview_review.json
+include examples/demo-output/post_interview_review.md
+include examples/demo-output/practice_questions.md
+include examples/demo-output/repository_evidence_map.md
+include examples/demo-output/repository_map.json
+include examples/demo-output/resume.md
+include examples/demo-output/retest_feedback.md
+include examples/demo-output/retest_questions.md
+include examples/demo-output/retests.json
+include examples/demo-output/study_cards.json
+include examples/demo-output/study_cards.md
+include examples/demo-output/study_plan.json
+include examples/demo-output/transcript.json
+include examples/demo-output/transcript.md
+include examples/materials/interview.md
+include examples/materials/redis-answer.docx
+include examples/materials/redis-interview.png
+include examples/materials/reference_answer.md
+include examples/rag/jd.md
+include examples/rag/repo/README.md
+include examples/rag/repo/pipeline.py
+include examples/rag/repo/test_pipeline.py
+include examples/rag/resume.md
+include examples/redis/jd.md
+include examples/redis/repo/README.md
+include examples/redis/repo/service.py
+include examples/redis/repo/stock.lua
+include examples/redis/resume.md
+include examples/service/jd.md
+include examples/service/repo/README.md
+include examples/service/repo/service.py
+include examples/service/resume.md
+include examples/corpus/synthetic.json
+include evals/corpus/cases.json

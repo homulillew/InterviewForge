@@ -1,0 +1,68 @@
+{
+  "$defs": {
+    "Applicability": {
+      "enum": [
+        "direct",
+        "transferable",
+        "style_only",
+        "reject"
+      ],
+      "title": "Applicability",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "revision": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Revision",
+      "type": "string"
+    },
+    "pattern_id": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Pattern Id",
+      "type": "string"
+    },
+    "source_case_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Case Ids",
+      "type": "array"
+    },
+    "applicability": {
+      "$ref": "#/$defs/Applicability"
+    },
+    "relevance": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Relevance",
+      "type": "number"
+    },
+    "reason": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "revision",
+    "pattern_id",
+    "source_case_ids",
+    "applicability",
+    "relevance",
+    "reason"
+  ],
+  "title": "CorpusMatchRef",
+  "type": "object"
+}

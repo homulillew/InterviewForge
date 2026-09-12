@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 import sys
 
+from interview_forge.cli.library import DEFAULT_LIBRARY, add_library_parser, run_library
 from interview_forge.interview.engine import advance, start_session
 from interview_forge.interview.retest import begin_retest, grade_retest, record_submission, review_retest
 from interview_forge.knowledge.graph import tree_view
@@ -25,6 +26,7 @@ def parser():
     start.add_argument("--resume", type=Path, required=True)
     start.add_argument("--repo", type=Path, required=True)
     start.add_argument("--jd", type=Path)
+    start.add_argument("--library", type=Path, default=DEFAULT_LIBRARY)
     start.add_argument("--provider", choices=["offline", "compatible"], default="offline")
     start.add_argument("--base-url")
     start.add_argument("--model")
@@ -39,6 +41,7 @@ def parser():
         "report": "Regenerate Markdown/JSON artifacts", "tree": "Show knowledge tree",
         "retest": "Ask one human retest question without reference", "answer": "Submit human retest answer",
         "grade-retest": "Retry feedback for an already saved answer",
+        "attach-library": "Use a material library for subsequent turns of this session",
         "review-retest": "Record an explicit human rubric review", "reset": "Archive and reset interview history",
     }.items():
         commands[name] = sub.add_parser(name, help=help_text)
@@ -47,6 +50,7 @@ def parser():
     for name in ("run", "resume"):
         commands[name].add_argument("--turns", type=positive, help="Run only this many additional turns")
     commands["retest"].add_argument("--node")
+    commands["attach-library"].add_argument("--library", type=Path, required=True)
     commands["grade-retest"].add_argument("--attempt")
     answers = commands["answer"].add_mutually_exclusive_group(required=True)
     answers.add_argument("--text")
@@ -58,6 +62,7 @@ def parser():
     review.add_argument("--missed", action="append", default=[])
     schema = sub.add_parser("schemas", help="Export all JSON Schemas")
     schema.add_argument("--output", type=Path, default=Path("schemas"))
+    add_library_parser(sub)
     return p
 
 
@@ -81,6 +86,8 @@ def run_loop(session, store, limit=None):
 def main(argv=None):
     args = parser().parse_args(argv)
     try:
+        if args.command == "library":
+            return run_library(args)
         if args.command == "schemas":
             from interview_forge.schemas.export import export_schemas
             export_schemas(args.output)
@@ -95,7 +102,8 @@ def main(argv=None):
                 if args.repo.resolve().is_relative_to(args.session.resolve()):
                     raise ValueError("Session must not be the repository root or its ancestor")
                 config = SessionConfig(provider=args.provider, model=args.model, base_url=args.base_url,
-                    max_turns=args.max_turns, max_depth=args.max_depth, deep_dive=args.deep_dive)
+                    max_turns=args.max_turns, max_depth=args.max_depth, deep_dive=args.deep_dive,
+                    library_path=str(args.library.resolve()))
                 session = start_session(args.resume.read_text(encoding="utf-8"), args.repo,
                     args.jd.read_text(encoding="utf-8") if args.jd else "", config, args.session)
                 store.save(session)
@@ -105,7 +113,11 @@ def main(argv=None):
                     run_loop(session, store)
                 return 0
             session = store.load()
-            if args.command in {"run", "resume"}:
+            if args.command == "attach-library":
+                session.config.library_path = str(args.library.resolve())
+                store.save(session)
+                print(f"Library attached: {session.config.library_path}; new material is retrieved on the next turn")
+            elif args.command in {"run", "resume"}:
                 if args.command == "resume" and session.status == "paused":
                     session.status = "running"
                 run_loop(session, store, args.turns)

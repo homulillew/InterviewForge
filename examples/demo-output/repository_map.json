@@ -1,5 +1,5 @@
 {
-  "root": "/data/WSH/InterviewForge/examples/redis/repo",
+  "root": "examples/redis/repo",
   "revision": null,
   "files": [
     "README.md",

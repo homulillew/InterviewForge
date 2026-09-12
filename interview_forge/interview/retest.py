@@ -3,6 +3,7 @@ from interview_forge.agents.repository_answerer import RepositoryAnswerer
 from interview_forge.curricula import TOPICS, topic_for
 from interview_forge.learning.planner import build_learning
 from interview_forge.llm import prompt
+from interview_forge.interview.material_context import material_context, merge_snapshots
 from interview_forge.schemas.models import (
     Assessment, Dimension, InterviewQuestion, InterviewSession, MasteryState,
     RetestAttempt, reviewed_ready,
@@ -79,7 +80,12 @@ def grade_retest(session, client=None, attempt_id=None):
         return session, pending  # Explicit repeated requests are idempotent.
     claim = next(c for c in session.claims if c.id == pending.question.claim_id)
     node = next(n for n in session.knowledge_graph.nodes if n.id == pending.node_id)
-    reference = pending.reference or RepositoryAnswerer(client).answer(pending.question, claim, session.evidences)
+    answer_materials = material_context(session, pending.question.text + " " + claim.source_quote,
+        "answer", focus=claim.topic)
+    reference = pending.reference or RepositoryAnswerer(client).answer(
+        pending.question, claim, session.evidences, reference_materials=answer_materials)
+    # Add citation snapshots to a detached state; a failed model call must not mutate caller state.
+    session = InterviewSession.model_validate({**session.model_dump(), "materials": merge_snapshots(session, answer_materials)})
     assessment = pending.assessment
     if assessment is None:
         if client:

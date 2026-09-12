@@ -1,0 +1,26 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "location": {
+      "minLength": 1,
+      "title": "Location",
+      "type": "string"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "method": {
+      "default": "text",
+      "minLength": 1,
+      "title": "Method",
+      "type": "string"
+    }
+  },
+  "required": [
+    "location",
+    "text"
+  ],
+  "title": "SourceBlock",
+  "type": "object"
+}

@@ -1,511 +1,97 @@
 # Best Answer Cards
 
-## q1: 为什么 Redis + Lua 能解决并发库存扣减的原子性问题？
+## q1: 结合秒杀库存服务，Redis 库存扣减中，Lua 的原子性具体保护了哪些状态变化？
 
-### Direct Interview Answer
+核心是把读库存、判断库存和扣减放进同一个 Redis Lua 脚本，让其他请求无法插入这段读写过程。我关注的是两个业务不变量：库存不能变成负数，同一个业务请求只能扣减一次。
 
-读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。
+落地时，我会这样组织处理：把库存检查、幂等键检查和扣减放入同一段 Lua 脚本，以订单号作为业务幂等键。幂等键使用订单号并记录处理结果，重试时先返回原结果；库存键和幂等键使用同一个 hash tag 保证落在同一槽位。客户端超时不能证明服务端失败，重试沿用同一个订单号，先读已保存的处理结果。
 
-选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
+### 可能的追问
 
-项目边界：当前项目材料可引用 [e6098a5520314a3]、[ec796696445c541]、[e4fec31a00ed11c]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。
+- 为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
+- 如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
+- Redis 执行后客户端超时，如何避免重试导致重复扣减？
+- 库存检查和扣减分成两个请求，为什么会发生 race condition？
+- 流量放大十倍形成 hot key 后，你会如何调整设计？
 
-### Project Grounding
+## q2: 上一答提到“核心是把读库存、判断库存和扣减放进同一个 Redis Lua 脚本，让其他请求无法插入这段读写过程”；结合秒杀库存服务，客户端在扣减成功后超时，重试怎样避免重复扣减？
 
-[e6098a5520314a3] stock.lua:1-11 (implementation)
+超时后我首先按原 request_id 查询或重试，复用第一次处理结果。因为客户端超时可能发生在扣减之后，把重试当成新请求会重复扣库存；去重检查、扣减和保存结果需要放在同一个执行边界内。
 
-```text
--- Redis Lua: atomic check and decrement within one Redis execution context.
--- Does not implement request deduplication, durable orders or failover guarantees.
-local amount = tonumber(ARGV[1])
-if amount == nil or amount <= 0 or amount ~= math.floor(amount) then
-    return redis.error_reply('invalid amount')
-end
-local stock = tonumber(redis.call('GET', KEYS[1]) or '0')
-if stock < amount then
-    return -1
-end
-return redis.call('DECRBY', KEYS[1], amount)
-```
+恢复时我会按业务键核对幂等结果、库存变化和订单状态：结果已保存就复用，订单缺失则推进补偿，状态不一致则进入对账。每一步都记录状态迁移，重复执行仍得到相同结果。
 
-[ec796696445c541] service.py:1-7 (implementation)
+实验上，我会这样安排：同时比较有幂等和无幂等的对照组，确认重复请求不会重复扣减。
 
-```text
-"""Illustrative caller; requires a caller-supplied Redis connection."""
-from pathlib import Path
+### 可能的追问
 
+- 为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
+- 如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
+- Redis 执行后客户端超时，如何避免重试导致重复扣减？
+- 库存检查和扣减分成两个请求，为什么会发生 race condition？
+- 流量放大十倍形成 hot key 后，你会如何调整设计？
 
-def reserve(redis_client, sku: str, amount: int):
-    lua = Path(__file__).with_name("stock.lua").read_text()
-    return redis_client.eval(lua, 1, "stock:" + sku, amount)
-```
+## q3: 上一答提到“超时后我首先按原 request_id 查询或重试，复用第一次处理结果”；结合秒杀库存服务，并发增加后吞吐不再增长，P99 却变高，怎么定位瓶颈？
 
-[e4fec31a00ed11c] README.md:1-6 (documentation)
+吞吐已经进入平台期，而 P99 继续升高，我首先怀疑请求在某个饱和资源前排队。先把端到端耗时拆成入口排队、连接池等待、服务端执行和下游调用四段，找出随并发一起增长的那一段。
 
-```text
-# Stock fixture
+Redis 侧看 CPU、SLOWLOG 和脚本耗时：单线程已满或 Lua 耗时增加，重点检查热 key 与长脚本；服务端耗时稳定而客户端等待变长，则转查连接池容量、网络往返和入口排队。同时检查订单数据库的锁等待和写入耗时。另外检查压测机自身的 CPU、连接数和网络，排除发压端先饱和。
 
-Redis Lua performs a stock check and decrement. This fixture is intentionally incomplete:
-no idempotency key, order database, production deployment or benchmark. The resume's 40%
-improvement is a deliberately unsupported claim for InterviewForge's evidence-boundary eval.
-Do not execute this fixture as a production service.
-```
+复验时固定机器和数据分布，逐档提高到达率，每档保留吞吐、P99、队列长度、拒绝率和资源利用率。每轮只改一个变量，例如缩短脚本、调整连接池或降低热点集中度；看瓶颈位置是否移动，再决定优化还是扩容。资源已饱和时先限制并发和排队长度，防止超时与重试继续放大负载。
 
-### Retrieval Rationale (relevance, not proof)
+实验上，我会这样安排：性能实验以数据库条件更新为对照，固定机器、连接池、数据规模和请求分布，逐档增加并发，同时记录成功吞吐、拒绝率、P95/P99、Redis CPU 和连接等待时间。
 
-- e6098a5520314a3: 31.931 — question terms: atomic, decrby, lua, redis, stock; claim terms: atomic, decrby, lua, redis, stock; artifact type relevant to question dimension
-- ec796696445c541: 23.466 — question terms: lua, redis, reserve, stock; claim terms: lua, redis, reserve, stock; artifact type relevant to question dimension
-- e4fec31a00ed11c: 12.0 — question terms: lua, redis, stock; claim terms: lua, redis, stock
+### 可能的追问
 
-### General Technical Knowledge
+- 为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
+- 如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
+- Redis 执行后客户端超时，如何避免重试导致重复扣减？
+- 库存检查和扣减分成两个请求，为什么会发生 race condition？
+- 流量放大十倍形成 hot key 后，你会如何调整设计？
 
-读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。
+## q4: 上一答提到“吞吐已经进入平台期，而 P99 继续升高，我首先怀疑请求在某个饱和资源前排队”；结合秒杀库存服务，数据库已经提交但连接断开时，客户端如何拿到最终结果？
 
-### Decision / Trade-off
+数据库已经提交时，连接断开只影响结果送达。我会用原业务唯一键查询持久化的处理状态和结果，完成态直接返回原结果，处理中返回可查询的任务状态；客户端继续沿用这个键，避免发起第二次业务操作。
 
-比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
+实现上，业务写入与最终结果记录放在同一个事务里，用唯一约束处理并发重放。如果还涉及消息发送，则记录待投递事件并重试投递，消费端按事件 ID 去重；恢复任务只推进缺失的状态，不重新执行已经提交的扣减。
 
-### Failure Modes
+验证时在提交成功到写回响应之间断开连接，随后并发重试同一个业务键，检查每次返回都对应同一条结果、业务只生效一次，再覆盖恢复进程重启和重复投递。
 
-- 脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。
+实验上，我会这样安排：接着重复发送同一个 request_id，在扣减完成后断开连接，再注入订单写入失败，检查重试和补偿多次执行时业务效果仍然只有一次。
 
-### Unsupported / Unverified
+### 可能的追问
 
-- 简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。
-- 源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。
-- 当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。
+- 为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
+- 如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
+- Redis 执行后客户端超时，如何避免重试导致重复扣减？
+- 库存检查和扣减分成两个请求，为什么会发生 race condition？
+- 流量放大十倍形成 hot key 后，你会如何调整设计？
 
-### Improvement Directions
+## q5: 上一答提到“数据库已经提交时，连接断开只影响结果送达”；结合秒杀库存服务，补偿任务重复执行会不会多加库存？
 
-改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。
+补偿本身也要幂等。我用原订单 ID 和补偿类型标识一次归还操作，只有状态从已扣减成功迁移到已补偿时才增加库存。状态检查、归还库存和保存补偿结果放在同一原子边界内；重复任务直接返回已补偿结果，不能每收到一条消息就再加一次库存。
 
-### Likely Follow-ups
+恢复时我会按业务键核对幂等结果、库存变化和订单状态：结果已保存就复用，订单缺失则推进补偿，状态不一致则进入对账。每一步都记录状态迁移，重复执行仍得到相同结果。
 
-为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
-如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
-Redis 执行后客户端超时，如何避免重试导致重复扣减？
+实验上，我会这样安排：固定初始库存为 100，使用 200 个并发请求争抢，并让同一订单号重复发起 3 次。验收条件是：成功订单不超过 100，库存不为负，重复订单只有一次扣减。
 
-## q2: 上一答提到“读库存、判断和扣减若分成多个请求，会出现交错执行”；如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
+### 可能的追问
 
-### Direct Interview Answer
+- 为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
+- 如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
+- Redis 执行后客户端超时，如何避免重试导致重复扣减？
+- 库存检查和扣减分成两个请求，为什么会发生 race condition？
+- 流量放大十倍形成 hot key 后，你会如何调整设计？
 
-并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。
+## q6: 上一答提到“补偿本身也要幂等”；结合秒杀库存服务，如果简历写吞吐提升，你会怎样设计可信的对照实验？
 
-选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
+我会把实验拆成正确性验证、对照实验和故障测试三部分，先固定输入与资源，再比较结果。
 
-项目边界：当前项目材料可引用 [e6098a5520314a3]、[e4fec31a00ed11c]、[ec796696445c541]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。
+实验上，我会这样安排：先设初始库存为 100，用 1,000 个不同请求并发争抢，验证成功扣减数等于 100、库存非负，并把成功结果与订单逐条对账。接着重复发送同一个 request_id，在扣减完成后断开连接，再注入订单写入失败，检查重试和补偿多次执行时业务效果仍然只有一次。性能实验以数据库条件更新为对照，固定机器、连接池、数据规模和请求分布，逐档增加并发，同时记录成功吞吐、拒绝率、P95/P99、Redis CPU 和连接等待时间。
 
-### Project Grounding
+### 可能的追问
 
-[e6098a5520314a3] stock.lua:1-11 (implementation)
-
-```text
--- Redis Lua: atomic check and decrement within one Redis execution context.
--- Does not implement request deduplication, durable orders or failover guarantees.
-local amount = tonumber(ARGV[1])
-if amount == nil or amount <= 0 or amount ~= math.floor(amount) then
-    return redis.error_reply('invalid amount')
-end
-local stock = tonumber(redis.call('GET', KEYS[1]) or '0')
-if stock < amount then
-    return -1
-end
-return redis.call('DECRBY', KEYS[1], amount)
-```
-
-[e4fec31a00ed11c] README.md:1-6 (documentation)
-
-```text
-# Stock fixture
-
-Redis Lua performs a stock check and decrement. This fixture is intentionally incomplete:
-no idempotency key, order database, production deployment or benchmark. The resume's 40%
-improvement is a deliberately unsupported claim for InterviewForge's evidence-boundary eval.
-Do not execute this fixture as a production service.
-```
-
-[ec796696445c541] service.py:1-7 (implementation)
-
-```text
-"""Illustrative caller; requires a caller-supplied Redis connection."""
-from pathlib import Path
-
-
-def reserve(redis_client, sku: str, amount: int):
-    lua = Path(__file__).with_name("stock.lua").read_text()
-    return redis_client.eval(lua, 1, "stock:" + sku, amount)
-```
-
-### Retrieval Rationale (relevance, not proof)
-
-- e6098a5520314a3: 11.466 — question terms: atomic; claim terms: atomic, decrby, lua, redis, stock
-- e4fec31a00ed11c: 8.079 — question terms: benchmark; claim terms: lua, redis, stock
-- ec796696445c541: 4.693 — claim terms: lua, redis, reserve, stock
-
-### General Technical Knowledge
-
-并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。
-
-### Decision / Trade-off
-
-比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-### Failure Modes
-
-- 脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。
-
-### Unsupported / Unverified
-
-- 简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。
-- 源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。
-- 当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。
-
-### Improvement Directions
-
-改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。
-
-### Likely Follow-ups
-
-为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
-如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
-Redis 执行后客户端超时，如何避免重试导致重复扣减？
-
-## q3: 上一答提到“并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境”；为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
-
-### Direct Interview Answer
-
-比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-项目边界：当前项目材料可引用 [e6098a5520314a3]、[ec796696445c541]、[e4fec31a00ed11c]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。
-
-### Project Grounding
-
-[e6098a5520314a3] stock.lua:1-11 (implementation)
-
-```text
--- Redis Lua: atomic check and decrement within one Redis execution context.
--- Does not implement request deduplication, durable orders or failover guarantees.
-local amount = tonumber(ARGV[1])
-if amount == nil or amount <= 0 or amount ~= math.floor(amount) then
-    return redis.error_reply('invalid amount')
-end
-local stock = tonumber(redis.call('GET', KEYS[1]) or '0')
-if stock < amount then
-    return -1
-end
-return redis.call('DECRBY', KEYS[1], amount)
-```
-
-[ec796696445c541] service.py:1-7 (implementation)
-
-```text
-"""Illustrative caller; requires a caller-supplied Redis connection."""
-from pathlib import Path
-
-
-def reserve(redis_client, sku: str, amount: int):
-    lua = Path(__file__).with_name("stock.lua").read_text()
-    return redis_client.eval(lua, 1, "stock:" + sku, amount)
-```
-
-[e4fec31a00ed11c] README.md:1-6 (documentation)
-
-```text
-# Stock fixture
-
-Redis Lua performs a stock check and decrement. This fixture is intentionally incomplete:
-no idempotency key, order database, production deployment or benchmark. The resume's 40%
-improvement is a deliberately unsupported claim for InterviewForge's evidence-boundary eval.
-Do not execute this fixture as a production service.
-```
-
-### Retrieval Rationale (relevance, not proof)
-
-- e6098a5520314a3: 15.483 — question terms: lua, redis; claim terms: atomic, decrby, lua, redis, stock; artifact type relevant to question dimension
-- ec796696445c541: 13.366 — question terms: lua, redis; claim terms: lua, redis, reserve, stock; artifact type relevant to question dimension
-- e4fec31a00ed11c: 9.0 — question terms: lua, redis; claim terms: lua, redis, stock
-
-### General Technical Knowledge
-
-比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-### Decision / Trade-off
-
-比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-### Failure Modes
-
-- 脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。
-
-### Unsupported / Unverified
-
-- 简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。
-- 源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。
-- 当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。
-
-### Improvement Directions
-
-改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。
-
-### Likely Follow-ups
-
-为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
-如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
-Redis 执行后客户端超时，如何避免重试导致重复扣减？
-
-## q4: 上一答提到“比较冲突率、业务事务边界和运维成本”；Redis 执行后客户端超时，如何避免重试导致重复扣减？
-
-### Direct Interview Answer
-
-脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。 读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。
-
-选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-项目边界：当前项目材料可引用 [e6098a5520314a3]、[e4fec31a00ed11c]、[ec796696445c541]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。
-
-### Project Grounding
-
-[e6098a5520314a3] stock.lua:1-11 (implementation)
-
-```text
--- Redis Lua: atomic check and decrement within one Redis execution context.
--- Does not implement request deduplication, durable orders or failover guarantees.
-local amount = tonumber(ARGV[1])
-if amount == nil or amount <= 0 or amount ~= math.floor(amount) then
-    return redis.error_reply('invalid amount')
-end
-local stock = tonumber(redis.call('GET', KEYS[1]) or '0')
-if stock < amount then
-    return -1
-end
-return redis.call('DECRBY', KEYS[1], amount)
-```
-
-[e4fec31a00ed11c] README.md:1-6 (documentation)
-
-```text
-# Stock fixture
-
-Redis Lua performs a stock check and decrement. This fixture is intentionally incomplete:
-no idempotency key, order database, production deployment or benchmark. The resume's 40%
-improvement is a deliberately unsupported claim for InterviewForge's evidence-boundary eval.
-Do not execute this fixture as a production service.
-```
-
-[ec796696445c541] service.py:1-7 (implementation)
-
-```text
-"""Illustrative caller; requires a caller-supplied Redis connection."""
-from pathlib import Path
-
-
-def reserve(redis_client, sku: str, amount: int):
-    lua = Path(__file__).with_name("stock.lua").read_text()
-    return redis_client.eval(lua, 1, "stock:" + sku, amount)
-```
-
-### Retrieval Rationale (relevance, not proof)
-
-- e6098a5520314a3: 11.733 — question terms: redis; claim terms: atomic, decrby, lua, redis, stock; artifact type relevant to question dimension
-- e4fec31a00ed11c: 11.079 — question terms: idempotency, redis; claim terms: lua, redis, stock
-- ec796696445c541: 9.616 — question terms: redis; claim terms: lua, redis, reserve, stock; artifact type relevant to question dimension
-
-### General Technical Knowledge
-
-脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。 读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。
-
-### Decision / Trade-off
-
-比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-### Failure Modes
-
-- 脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。
-
-### Unsupported / Unverified
-
-- 简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。
-- 源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。
-- 当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。
-
-### Improvement Directions
-
-改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。
-
-### Likely Follow-ups
-
-为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
-如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
-Redis 执行后客户端超时，如何避免重试导致重复扣减？
-
-## q5: 上一答提到“脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束”；库存检查和扣减分成两个请求，为什么会发生 race condition？
-
-### Direct Interview Answer
-
-两个请求都读到同一份旧值再分别写回，会破坏业务不变量。同步必须覆盖完整的读—检查—写。原子性、隔离性和持久性是不同保证，不能由单条命令的原子性推导跨系统一致性。
-
-选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-项目边界：当前项目材料可引用 [e6098a5520314a3]、[ec796696445c541]、[e4fec31a00ed11c]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。
-
-### Project Grounding
-
-[e6098a5520314a3] stock.lua:1-11 (implementation)
-
-```text
--- Redis Lua: atomic check and decrement within one Redis execution context.
--- Does not implement request deduplication, durable orders or failover guarantees.
-local amount = tonumber(ARGV[1])
-if amount == nil or amount <= 0 or amount ~= math.floor(amount) then
-    return redis.error_reply('invalid amount')
-end
-local stock = tonumber(redis.call('GET', KEYS[1]) or '0')
-if stock < amount then
-    return -1
-end
-return redis.call('DECRBY', KEYS[1], amount)
-```
-
-[ec796696445c541] service.py:1-7 (implementation)
-
-```text
-"""Illustrative caller; requires a caller-supplied Redis connection."""
-from pathlib import Path
-
-
-def reserve(redis_client, sku: str, amount: int):
-    lua = Path(__file__).with_name("stock.lua").read_text()
-    return redis_client.eval(lua, 1, "stock:" + sku, amount)
-```
-
-[e4fec31a00ed11c] README.md:1-6 (documentation)
-
-```text
-# Stock fixture
-
-Redis Lua performs a stock check and decrement. This fixture is intentionally incomplete:
-no idempotency key, order database, production deployment or benchmark. The resume's 40%
-improvement is a deliberately unsupported claim for InterviewForge's evidence-boundary eval.
-Do not execute this fixture as a production service.
-```
-
-### Retrieval Rationale (relevance, not proof)
-
-- e6098a5520314a3: 18.082 — question terms: decrby, stock; claim terms: atomic, decrby, lua, redis, stock; artifact type relevant to question dimension
-- ec796696445c541: 15.966 — question terms: reserve, stock; claim terms: lua, redis, reserve, stock; artifact type relevant to question dimension
-- e4fec31a00ed11c: 6.0 — question terms: stock; claim terms: lua, redis, stock
-
-### General Technical Knowledge
-
-两个请求都读到同一份旧值再分别写回，会破坏业务不变量。同步必须覆盖完整的读—检查—写。原子性、隔离性和持久性是不同保证，不能由单条命令的原子性推导跨系统一致性。
-
-### Decision / Trade-off
-
-比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-### Failure Modes
-
-- 脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。
-
-### Unsupported / Unverified
-
-- 简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。
-- 源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。
-- 当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。
-
-### Improvement Directions
-
-改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。
-
-### Likely Follow-ups
-
-为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
-如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
-Redis 执行后客户端超时，如何避免重试导致重复扣减？
-
-## q6: 上一答提到“两个请求都读到同一份旧值再分别写回，会破坏业务不变量”；结合刚才的边界，如果业务更重视持久化一致性而不是吞吐，你会如何重新选择Redis Lua 并发库存扣减的替代方案？
-
-### Direct Interview Answer
-
-比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-项目边界：当前项目材料可引用 [e6098a5520314a3]、[ec796696445c541]、[e4fec31a00ed11c]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。
-
-### Project Grounding
-
-[e6098a5520314a3] stock.lua:1-11 (implementation)
-
-```text
--- Redis Lua: atomic check and decrement within one Redis execution context.
--- Does not implement request deduplication, durable orders or failover guarantees.
-local amount = tonumber(ARGV[1])
-if amount == nil or amount <= 0 or amount ~= math.floor(amount) then
-    return redis.error_reply('invalid amount')
-end
-local stock = tonumber(redis.call('GET', KEYS[1]) or '0')
-if stock < amount then
-    return -1
-end
-return redis.call('DECRBY', KEYS[1], amount)
-```
-
-[ec796696445c541] service.py:1-7 (implementation)
-
-```text
-"""Illustrative caller; requires a caller-supplied Redis connection."""
-from pathlib import Path
-
-
-def reserve(redis_client, sku: str, amount: int):
-    lua = Path(__file__).with_name("stock.lua").read_text()
-    return redis_client.eval(lua, 1, "stock:" + sku, amount)
-```
-
-[e4fec31a00ed11c] README.md:1-6 (documentation)
-
-```text
-# Stock fixture
-
-Redis Lua performs a stock check and decrement. This fixture is intentionally incomplete:
-no idempotency key, order database, production deployment or benchmark. The resume's 40%
-improvement is a deliberately unsupported claim for InterviewForge's evidence-boundary eval.
-Do not execute this fixture as a production service.
-```
-
-### Retrieval Rationale (relevance, not proof)
-
-- e6098a5520314a3: 31.931 — question terms: atomic, decrby, lua, redis, stock; claim terms: atomic, decrby, lua, redis, stock; artifact type relevant to question dimension
-- ec796696445c541: 23.466 — question terms: lua, redis, reserve, stock; claim terms: lua, redis, reserve, stock; artifact type relevant to question dimension
-- e4fec31a00ed11c: 12.0 — question terms: lua, redis, stock; claim terms: lua, redis, stock
-
-### General Technical Knowledge
-
-比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-### Decision / Trade-off
-
-比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。
-
-### Failure Modes
-
-- 脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。
-
-### Unsupported / Unverified
-
-- 简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。
-- 源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。
-- 当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。
-
-### Improvement Directions
-
-改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。
-
-### Likely Follow-ups
-
-为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
-如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
-Redis 执行后客户端超时，如何避免重试导致重复扣减？
+- 为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？
+- 如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？
+- Redis 执行后客户端超时，如何避免重试导致重复扣减？
+- 库存检查和扣减分成两个请求，为什么会发生 race condition？
+- 流量放大十倍形成 hot key 后，你会如何调整设计？

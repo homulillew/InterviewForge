@@ -4,7 +4,7 @@ recursive-include rules *.md
 recursive-include references *.md
 recursive-include templates *.md
 recursive-include prompts *.md
-recursive-include examples *.md *.json *.py *.lua
+recursive-include examples *.md *.json *.py *.lua *.txt *.png *.jpg *.jpeg *.webp *.docx *.pdf
 recursive-include schemas *.json
 recursive-include evals *.md
 recursive-include scripts *.sh

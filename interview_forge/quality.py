@@ -8,7 +8,7 @@ TRIVIA = re.compile(
     r"which (file|directory|class)|does.{0,35}(contain|have|depend on)", re.I,
 )
 VALUE = re.compile(
-    r"为什么|为何|如何|怎么|机制|原子|边界|失效|故障|权衡|替代|验证|并发|负责|理解|能够|解释|设计|"
+    r"为什么|为何|如何|怎么|怎样|能否|会不会|区别|瓶颈|回滚|补偿|重试|超时|机制|原子|边界|失效|故障|权衡|替代|验证|并发|负责|理解|能够|解释|设计|"
     r"why|how|trade.?off|failure|mechanism|validate|explain|design|understand|responsib", re.I,
 )
 PROJECT_ASSERTION = re.compile(

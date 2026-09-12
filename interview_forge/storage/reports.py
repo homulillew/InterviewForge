@@ -19,7 +19,7 @@ def source_quotes(ids, sources):
 def export_reports(store, session):
     review = review_session(session)
     def write(name, text):
-        atomic_write(store.directory / name, text)
+        atomic_write(store.directory / name, text.rstrip() + "\n")
     write("resume.md", session.resume)
     write("jd.md", session.jd)
     for name, value in {
@@ -31,6 +31,7 @@ def export_reports(store, session):
         "study_plan.json": [t.model_dump() for t in session.study_plan],
         "study_cards.json": [c.model_dump() for c in session.study_cards],
         "retests.json": [r.model_dump() for r in session.retests],
+        "materials.json": [m.model_dump() for m in session.materials],
         "post_interview_review.json": review.model_dump(),
     }.items():
         store.export_json(name, value)
@@ -49,19 +50,10 @@ def export_reports(store, session):
     sources = {e.id: e for e in session.evidences}
     for t in session.transcript:
         transcript += [f"## {t.id} · {t.question.claim_id} · L{t.question.level}", t.question.text,
-                       t.answer.direct_interview_answer, "未核实：" + "; ".join(t.answer.unsupported_claims)]
+                       t.answer.direct_interview_answer]
         a = t.answer
-        selection = "\n".join(f"- {m.evidence_id}: {m.relevance_score} — {'; '.join(m.reasons)}"
-                              for m in a.evidence_selection)
-        answers += [f"## {t.question.id}: {t.question.text}", "### Direct Interview Answer", a.direct_interview_answer,
-                    "### Project Grounding", source_quotes(a.evidence_ids, sources),
-                    "### Retrieval Rationale (relevance, not proof)", selection or "Legacy snapshot: ranking not recorded",
-                    "### General Technical Knowledge", a.technical_explanation,
-                    "### Decision / Trade-off", a.technology_decision,
-                    "### Failure Modes", "\n".join("- " + x for x in a.failure_modes),
-                    "### Unsupported / Unverified", "\n".join("- " + x for x in a.unsupported_claims),
-                    "### Improvement Directions", "\n".join(a.improvement_directions),
-                    "### Likely Follow-ups", "\n".join(a.likely_followups)]
+        answers += [f"## {t.question.id}: {t.question.text}", a.direct_interview_answer,
+                    "### 可能的追问", "\n".join("- " + q for q in a.likely_followups)]
         chains += [f"{t.question.based_on_turn or 'start'} → {t.id}: {t.question.text}", t.question.rationale]
     write("transcript.md", "\n\n".join(transcript))
     write("best_answer_cards.md", "\n\n".join(answers))
@@ -77,12 +69,38 @@ def export_reports(store, session):
             feedback += [f"### Assessment ({assessment.assessor}, {assessment.score:.2f})",
                          assessment.rationale, "Missed points: " + "; ".join(assessment.missed_points)]
         if attempt.reference:
-            feedback += ["### Reference Answer", attempt.reference.direct_interview_answer,
-                         "### Project Grounding", source_quotes(attempt.reference.evidence_ids, sources),
-                         "### Unverified", "\n".join(attempt.reference.unsupported_claims)]
+            feedback += ["### Reference Answer", attempt.reference.direct_interview_answer]
         if attempt.reference is None or attempt.assessment is None:
             feedback.append("答案已保存，反馈待完成。使用 grade-retest 继续，无需重交答案。")
     write("retest_feedback.md", "\n\n".join(feedback))
+    # Audit/provenance is retained independently from what a candidate says aloud.
+    audits = []
+    usage = []
+    material_map = {m.id: m for m in session.materials}
+    answer_records = [(t.id, t.question, t.answer) for t in session.transcript]
+    answer_records += [(r.id, r.question, r.reference) for r in session.retests if r.human_answer and r.reference]
+    audit_text = ["# Answer Reasoning and Source Audit"]
+    for record_id, question, answer in answer_records:
+        record = {"record_id": record_id, "question_id": question.id,
+                  "repository_evidence": answer.evidence_ids,
+                  "reference_material_ids": answer.reference_material_ids,
+                  "reasoning_basis": answer.reasoning_basis, "inferred_details": answer.inferred_details,
+                  "experiment_plan": answer.experiment_plan, "unsupported_claims": answer.unsupported_claims}
+        audits.append(record)
+        audit_text += [f"## {record_id} · {question.text}", "### Project Grounding", source_quotes(answer.evidence_ids, sources),
+            "### Retrieval Rationale (relevance, not proof)",
+            "\n".join(f"- {m.evidence_id}: {m.relevance_score} — {'; '.join(m.reasons)}" for m in answer.evidence_selection),
+            "### Reasoning Basis", "\n".join(answer.reasoning_basis),
+            "### Inferred Design Details", "\n".join(answer.inferred_details),
+            "### Experiment Plan", "\n".join(answer.experiment_plan),
+            "### Unsupported / Unverified", "\n".join(answer.unsupported_claims)]
+        for mid in [*question.material_ids, *answer.reference_material_ids]:
+            material = material_map[mid]
+            usage.append({"record_id": record_id, "question_id": question.id, **material.model_dump()})
+            audit_text += [f"### Reference {mid}", f"{material.source_file} · {material.location}", literal_block(material.source_quote)]
+    store.export_json("answer_audit.json", audits)
+    store.export_json("material_usage.json", usage)
+    write("answer_audit.md", "\n\n".join(audit_text))
     write("knowledge_tree.md", "# Interview Knowledge Tree\n\n```text\n" + tree_view(session.knowledge_graph) + "```\n")
     cards = ["# Study Cards", "默认 P0/P1、distance 0/1；模拟产物不代表个人已经掌握。"]
     for c in session.study_cards:

@@ -1,0 +1,94 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "document_id": {
+      "minLength": 1,
+      "title": "Document Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "interview",
+        "answer"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "title": {
+      "default": "",
+      "title": "Title",
+      "type": "string"
+    },
+    "question": {
+      "default": "",
+      "title": "Question",
+      "type": "string"
+    },
+    "answer": {
+      "default": "",
+      "title": "Answer",
+      "type": "string"
+    },
+    "followups": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Followups",
+      "type": "array"
+    },
+    "topics": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Topics",
+      "type": "array"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+    },
+    "company": {
+      "default": "",
+      "title": "Company",
+      "type": "string"
+    },
+    "role": {
+      "default": "",
+      "title": "Role",
+      "type": "string"
+    },
+    "source_file": {
+      "minLength": 1,
+      "title": "Source File",
+      "type": "string"
+    },
+    "location": {
+      "minLength": 1,
+      "title": "Location",
+      "type": "string"
+    },
+    "source_quote": {
+      "minLength": 1,
+      "title": "Source Quote",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "document_id",
+    "kind",
+    "source_file",
+    "location",
+    "source_quote"
+  ],
+  "title": "MaterialItem",
+  "type": "object"
+}

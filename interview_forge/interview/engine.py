@@ -2,7 +2,8 @@ from collections import Counter
 from uuid import uuid4
 from pathlib import Path
 
-from interview_forge.agents.interviewer import Interviewer, InterviewerView, SpokenTurn
+from interview_forge.agents.interviewer import Interviewer, InterviewerView, SpokenTurn, QuestionSeed
+from interview_forge.interview.material_context import material_context, merge_snapshots
 from interview_forge.agents.repository_answerer import RepositoryAnswerer
 from interview_forge.claims.pipeline import extract_claims, rank_claims
 from interview_forge.knowledge.graph import extract_knowledge, merge_graph
@@ -12,10 +13,28 @@ from interview_forge.repository.scanner import scan_repository
 from interview_forge.schemas.models import InterviewSession, InterviewTurn, MasteryState, PostInterviewReview
 
 
+def question_seeds(materials, max_chars=8000):
+    """Keep exact, bounded question wording; full documents stay in the library."""
+    seeds, remaining = [], max_chars
+    for item in materials:
+        question = item.question if len(item.question) <= min(1200, remaining) else ""
+        remaining -= len(question)
+        followups = []
+        for followup in item.followups:
+            if 0 < len(followup) <= min(1200, remaining) and len(followups) < 6:
+                followups.append(followup)
+                remaining -= len(followup)
+        if question or followups:
+            seeds.append(QuestionSeed(id=item.id, question=question, followups=followups,
+                topics=[topic[:100] for topic in item.topics[:10]], company=item.company[:120], role=item.role[:120]))
+    return seeds
+
+
 def start_session(resume: str, repo: Path, jd: str, config, output: Path):
     client = make_client(config)
     statements, claims = extract_claims(resume, jd, client)
-    repo_map, evidence = scan_repository(repo, claims, exclude=output)
+    repo_map, evidence = scan_repository(repo, claims, exclude=output,
+        excludes=[Path(config.library_path)] if config.library_path else [])
     claims = rank_claims(claims, jd)
     return InterviewSession(id=str(uuid4()), resume=resume, jd=jd, config=config,
         statements=statements, claims=claims, repository_map=repo_map, evidences=evidence)
@@ -51,6 +70,8 @@ def advance(session, client=None):
         session.stop_reason = "claim_coverage_or_no_new_knowledge"
         return False
     history = [t for t in session.transcript if t.question.claim_id == claim.id]
+    question_materials = material_context(session, claim.source_quote + " " + claim.topic + " " + session.jd,
+        "interview", focus=claim.topic)
     # A detached claim object prevents incidental access to repository metadata.
     blind_claim = claim.model_copy(deep=True)
     blind_claim.evidence_ids = []
@@ -59,18 +80,21 @@ def advance(session, client=None):
     earlier = [t for t in session.transcript if next(c for c in session.claims if c.id == t.question.claim_id).statement_id == claim.statement_id]
     previous = earlier[-1] if earlier and not history else None
     view = InterviewerView(claim=blind_claim, jd=session.jd, depth=len(history),
+        experience_questions=question_seeds(question_materials),
+        used_material_questions=[t.question.material_question for t in session.transcript if t.question.material_question],
         previous_topic_answer=SpokenTurn(id=previous.id, question=previous.question.text,
-            answer=previous.answer.technical_explanation, signals=previous.answer.signals,
+            answer=previous.answer.direct_interview_answer, signals=previous.answer.signals,
             subtopic=previous.question.subtopic) if previous else None,
         history=[SpokenTurn(id=t.id, question=t.question.text,
-            answer=t.answer.technical_explanation + " " + t.answer.technology_decision,
+            answer=t.answer.direct_interview_answer,
             signals=t.answer.signals, subtopic=t.question.subtopic) for t in history],
         knowledge_titles=[n.title for n in session.knowledge_graph.nodes])
     question = Interviewer(client).ask(view, f"q{len(session.transcript)+1}")
-    answer = RepositoryAnswerer(client).answer(question, claim, session.evidences)
+    answer_materials = material_context(session, question.text + " " + claim.source_quote, "answer", focus=claim.topic)
+    answer = RepositoryAnswerer(client).answer(question, claim, session.evidences, reference_materials=answer_materials)
     gap_messages = {
-        "no_implementation": "尚未用实现证据说明业务落地与保证边界",
-        "no_measurement": "尚未提供与当前问题相关的可复现正确性测试或评测结果",
+        "no_implementation": "回答缺少业务路径和具体实现步骤",
+        "no_measurement": "回答缺少可复现实验的对照、步骤或指标",
         "no_decision": "回答未说明技术选择的约束与替代方案比较",
         "failure_gap": "回答未说明关键故障及恢复路径",
         "api_only": "回答停留在调用层，缺少核心机制解释",
@@ -86,7 +110,8 @@ def advance(session, client=None):
     turn.new_knowledge_ids = new
     # Commit all mutually referential objects as one validated model, not assignment-by-assignment.
     candidate = session.model_dump()
-    candidate.update(status="running", transcript=[*session.transcript, turn], knowledge_graph=graph)
+    candidate.update(status="running", transcript=[*session.transcript, turn], knowledge_graph=graph,
+                     materials=merge_snapshots(session, [*question_materials, *answer_materials]))
     for c in candidate["claims"]:
         if c["id"] == claim.id:
             c["answerability"] = answer.answerability
@@ -112,6 +137,6 @@ def review_session(session):
         knowledge_gaps=[task.root_knowledge_gap for task in session.study_plan],
         engineering_gaps=by_signal("no_implementation"), decision_making_gaps=by_signal("no_decision"),
         failure_mode_gaps=by_signal("failure_gap"), evaluation_gaps=by_signal("no_measurement"),
-        recommended_next_round=[f"先补证据并复测 {task.node_id}: {task.root_knowledge_gap}" for task in session.study_plan[:5]] +
+        recommended_next_round=[f"练习并复测 {task.node_id}: {task.root_knowledge_gap}" for task in session.study_plan[:5]] +
             [f"尚未覆盖 {c.id}: {c.proposition}" for c in session.claims if not counts[c.id]][:3],
         study_tasks=[t.id for t in session.study_plan], knowledge_graph_update=[n.id for n in session.knowledge_graph.nodes])

@@ -22,6 +22,34 @@
           "title": "Evidence Selection",
           "type": "array"
         },
+        "reference_material_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Material Ids",
+          "type": "array"
+        },
+        "reasoning_basis": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasoning Basis",
+          "type": "array"
+        },
+        "inferred_details": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Inferred Details",
+          "type": "array"
+        },
+        "experiment_plan": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Experiment Plan",
+          "type": "array"
+        },
         "evidence_ids": {
           "items": {
             "type": "string"
@@ -241,6 +269,25 @@
           },
           "title": "Expected Points",
           "type": "array"
+        },
+        "material_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Material Ids",
+          "type": "array"
+        },
+        "material_question": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Material Question"
         }
       },
       "required": [

@@ -52,6 +52,18 @@
       "default": false,
       "title": "Deep Dive",
       "type": "boolean"
+    },
+    "library_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Library Path"
     }
   },
   "title": "SessionConfig",

@@ -22,6 +22,34 @@
           "title": "Evidence Selection",
           "type": "array"
         },
+        "reference_material_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Material Ids",
+          "type": "array"
+        },
+        "reasoning_basis": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasoning Basis",
+          "type": "array"
+        },
+        "inferred_details": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Inferred Details",
+          "type": "array"
+        },
+        "experiment_plan": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Experiment Plan",
+          "type": "array"
+        },
         "evidence_ids": {
           "items": {
             "type": "string"
@@ -427,6 +455,25 @@
           },
           "title": "Expected Points",
           "type": "array"
+        },
+        "material_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Material Ids",
+          "type": "array"
+        },
+        "material_question": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Material Question"
         }
       },
       "required": [
@@ -765,6 +812,100 @@
         }
       },
       "title": "MasteryState",
+      "type": "object"
+    },
+    "MaterialItem": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "document_id": {
+          "minLength": 1,
+          "title": "Document Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "interview",
+            "answer"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "title": "Title",
+          "type": "string"
+        },
+        "question": {
+          "default": "",
+          "title": "Question",
+          "type": "string"
+        },
+        "answer": {
+          "default": "",
+          "title": "Answer",
+          "type": "string"
+        },
+        "followups": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Followups",
+          "type": "array"
+        },
+        "topics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Topics",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "company": {
+          "default": "",
+          "title": "Company",
+          "type": "string"
+        },
+        "role": {
+          "default": "",
+          "title": "Role",
+          "type": "string"
+        },
+        "source_file": {
+          "minLength": 1,
+          "title": "Source File",
+          "type": "string"
+        },
+        "location": {
+          "minLength": 1,
+          "title": "Location",
+          "type": "string"
+        },
+        "source_quote": {
+          "minLength": 1,
+          "title": "Source Quote",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "document_id",
+        "kind",
+        "source_file",
+        "location",
+        "source_quote"
+      ],
+      "title": "MaterialItem",
       "type": "object"
     },
     "PostInterviewReview": {
@@ -1208,6 +1349,18 @@
           "default": false,
           "title": "Deep Dive",
           "type": "boolean"
+        },
+        "library_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Library Path"
         }
       },
       "title": "SessionConfig",
@@ -1423,6 +1576,13 @@
         "$ref": "#/$defs/RepoEvidence"
       },
       "title": "Evidences",
+      "type": "array"
+    },
+    "materials": {
+      "items": {
+        "$ref": "#/$defs/MaterialItem"
+      },
+      "title": "Materials",
       "type": "array"
     },
     "transcript": {

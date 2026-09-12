@@ -48,10 +48,12 @@ def test_simulation_never_promotes_mastery(session):
     assert session.transcript[5].question.subtopic != session.transcript[0].question.subtopic
 
 
-def test_empty_evidence_means_unsupported(session):
+def test_empty_evidence_keeps_audit_without_weakening_spoken_design(session):
     advance(session)
     answer = RepositoryAnswerer().answer(session.transcript[0].question, session.claims[0], [])
     assert answer.answerability == "low"
     assert not answer.evidence_ids
     assert answer.unsupported_claims
-    assert "no_implementation" in answer.signals
+    assert "no_implementation" not in answer.signals
+    assert answer.inferred_details and answer.experiment_plan
+    assert "证据不足" not in answer.direct_interview_answer

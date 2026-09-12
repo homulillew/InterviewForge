@@ -4,23 +4,27 @@
     "question": {
       "id": "q1",
       "claim_id": "c2",
-      "text": "为什么 Redis + Lua 能解决并发库存扣减的原子性问题？",
+      "text": "结合秒杀库存服务，Redis 库存扣减中，Lua 的原子性具体保护了哪些状态变化？",
       "dimension": "Mechanism Understanding",
       "level": 2,
       "depth": 0,
       "subtopic": "mechanism",
-      "rationale": "首问验证简历能力主张",
+      "rationale": "首问验证简历能力主张；面经来源 item_593743c4abe06c46b3e6",
       "based_on_turn": null,
       "expected_points": [
         "原子",
         "重试",
         "边界",
         "验证"
-      ]
+      ],
+      "material_ids": [
+        "item_593743c4abe06c46b3e6"
+      ],
+      "material_question": "Redis 库存扣减中，Lua 的原子性具体保护了哪些状态变化？"
     },
     "answer": {
       "question_id": "q1",
-      "direct_interview_answer": "读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。\n\n选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n项目边界：当前项目材料可引用 [e6098a5520314a3]、[ec796696445c541]、[e4fec31a00ed11c]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。",
+      "direct_interview_answer": "核心是把读库存、判断库存和扣减放进同一个 Redis Lua 脚本，让其他请求无法插入这段读写过程。我关注的是两个业务不变量：库存不能变成负数，同一个业务请求只能扣减一次。\n\n落地时，我会这样组织处理：把库存检查、幂等键检查和扣减放入同一段 Lua 脚本，以订单号作为业务幂等键。幂等键使用订单号并记录处理结果，重试时先返回原结果；库存键和幂等键使用同一个 hash tag 保证落在同一槽位。客户端超时不能证明服务端失败，重试沿用同一个订单号，先读已保存的处理结果。",
       "evidence_selection": [
         {
           "evidence_id": "e6098a5520314a3",
@@ -49,42 +53,70 @@
           ]
         }
       ],
+      "reference_material_ids": [
+        "item_d2587ee205a66af96880",
+        "item_6fc0945c96303bd1e208"
+      ],
+      "reasoning_basis": [
+        "简历项目与能力：秒杀库存服务 / Redis Lua 并发库存扣减",
+        "源码依据：[e6098a5520314a3] stock.lua:1",
+        "源码依据：[ec796696445c541] service.py:1",
+        "源码依据：[e4fec31a00ed11c] README.md:1",
+        "参考方法：[item_d2587ee205a66af96880] Redis Lua 脚本为什么能防止库存超卖？",
+        "参考方法：[item_6fc0945c96303bd1e208] 如何设计幂等键，避免重复扣库存？",
+        "工程细节与实验参数按问题场景推演；实验参数不表示已测得的结果。"
+      ],
+      "inferred_details": [
+        "实现上我会用 request_id 标识一次业务请求：脚本先检查幂等结果，再检查库存，最后完成扣减并保存结果；重复请求直接返回第一次的结果。参数类型和取值在写入前检查，库存 key 和幂等 key 在集群里使用同一个 hash tag。",
+        "具体处理时，我会采用这个流程：把库存检查、幂等键检查和扣减放入同一段 Lua 脚本，以订单号作为业务幂等键。",
+        "具体处理时，我会采用这个流程：幂等键使用订单号并记录处理结果，重试时先返回原结果；库存键和幂等键使用同一个 hash tag 保证落在同一槽位。",
+        "具体处理时，我会采用这个流程：客户端超时不能证明服务端失败，重试沿用同一个订单号，先读已保存的处理结果。"
+      ],
+      "experiment_plan": [
+        "实验上，我会这样安排：固定初始库存为 100，使用 200 个并发请求争抢，并让同一订单号重复发起 3 次。",
+        "验证时，我会检查：成功订单不超过 100，库存不为负，重复订单只有一次扣减。",
+        "实验上，我会这样安排：在发送成功响应前注入延迟，让客户端以 50 毫秒超时重试；分别覆盖脚本执行前断连、执行后响应丢失、幂等记录过期，检查重试返回值和库存是否一致。",
+        "性能实验把数据库条件更新作为基线，固定机器、连接池和请求分布，逐档增加并发，同时记录成功吞吐、拒绝率、P95/P99、Redis CPU 和连接等待时间，观察瓶颈出现在哪一档。"
+      ],
       "evidence_ids": [
         "e6098a5520314a3",
         "ec796696445c541",
         "e4fec31a00ed11c"
       ],
-      "technical_explanation": "读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。",
-      "technology_decision": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "technical_explanation": "核心是把读库存、判断库存和扣减放进同一个 Redis Lua 脚本，让其他请求无法插入这段读写过程。我关注的是两个业务不变量：库存不能变成负数，同一个业务请求只能扣减一次。",
+      "technology_decision": "我的选型顺序是先看事务边界，再看热点竞争。如果订单和库存都能在同一个数据库事务里完成，条件 UPDATE 就很直接；热点库存需要快速拒绝无库存请求时，我会用 Redis 承接入口，订单落库和对账分别处理。",
       "failure_modes": [
-        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+        "最容易出问题的是扣减成功后客户端超时，随后重试又扣一次。我会让重试复用原来的 request_id，幂等记录的保留期覆盖重试窗口。订单写入失败则进入可重试的补偿和对账流程；Lua 的原子执行不提供数据库事务回滚。"
       ],
       "unsupported_claims": [
-        "简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+        "简历自述：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
         "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
-        "当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。"
+        "当前选取证据未包含相关测试或评测；实验方案与执行结果分别记录。",
+        "参考回答只提供方法和表达结构；其中的个人经历、部署规模与测量结果不归属于候选人。"
       ],
       "likely_followups": [
         "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
         "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
-        "Redis 执行后客户端超时，如何避免重试导致重复扣减？"
+        "Redis 执行后客户端超时，如何避免重试导致重复扣减？",
+        "库存检查和扣减分成两个请求，为什么会发生 race condition？",
+        "流量放大十倍形成 hot key 后，你会如何调整设计？"
       ],
       "related_knowledge": [
         "Redis Lua 并发库存扣减",
         "Race condition 与原子性边界"
       ],
       "improvement_directions": [
-        "改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。"
+        "流量放大后，我会先区分连接池排队和单个热 key 饱和。入口做排队与限流，缩短 Lua 执行时间；单个库存桶成为瓶颈时再考虑分桶预分配，配套总量校验和余量回收，避免把跨桶一致性成本带进每次请求。"
       ],
       "answerability": "medium",
       "signals": [
-        "no_measurement"
+        "solid"
       ],
       "provenance": "offline"
     },
     "kind": "simulation",
     "weaknesses_observed": [
-      "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果"
+      "材料待核实：简历自述：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。"
     ],
     "new_knowledge_ids": [
       "k0116430dc8d2",
@@ -96,209 +128,43 @@
     "question": {
       "id": "q2",
       "claim_id": "c2",
-      "text": "上一答提到“读库存、判断和扣减若分成多个请求，会出现交错执行”；如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
-      "dimension": "Evaluation / Measurement",
-      "level": 4,
+      "text": "上一答提到“核心是把读库存、判断库存和扣减放进同一个 Redis Lua 脚本，让其他请求无法插入这段读写过程”；结合秒杀库存服务，客户端在扣减成功后超时，重试怎样避免重复扣减？",
+      "dimension": "Failure Handling",
+      "level": 5,
       "depth": 1,
-      "subtopic": "evaluation",
-      "rationale": "上一答信号 no_measurement；继续验证 evaluation",
+      "subtopic": "failure",
+      "rationale": "上一答信号 solid；继续验证 failure；面经来源 item_593743c4abe06c46b3e6",
       "based_on_turn": "t1",
       "expected_points": [
         "原子",
         "重试",
         "边界",
         "验证"
-      ]
+      ],
+      "material_ids": [
+        "item_593743c4abe06c46b3e6"
+      ],
+      "material_question": "客户端在扣减成功后超时，重试怎样避免重复扣减？"
     },
     "answer": {
       "question_id": "q2",
-      "direct_interview_answer": "并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。\n\n选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n项目边界：当前项目材料可引用 [e6098a5520314a3]、[e4fec31a00ed11c]、[ec796696445c541]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。",
+      "direct_interview_answer": "超时后我首先按原 request_id 查询或重试，复用第一次处理结果。因为客户端超时可能发生在扣减之后，把重试当成新请求会重复扣库存；去重检查、扣减和保存结果需要放在同一个执行边界内。\n\n恢复时我会按业务键核对幂等结果、库存变化和订单状态：结果已保存就复用，订单缺失则推进补偿，状态不一致则进入对账。每一步都记录状态迁移，重复执行仍得到相同结果。\n\n实验上，我会这样安排：同时比较有幂等和无幂等的对照组，确认重复请求不会重复扣减。",
       "evidence_selection": [
         {
           "evidence_id": "e6098a5520314a3",
-          "relevance_score": 11.466,
+          "relevance_score": 18.082,
           "reasons": [
-            "question terms: atomic",
-            "claim terms: atomic, decrby, lua, redis, stock"
-          ]
-        },
-        {
-          "evidence_id": "e4fec31a00ed11c",
-          "relevance_score": 8.079,
-          "reasons": [
-            "question terms: benchmark",
-            "claim terms: lua, redis, stock"
-          ]
-        },
-        {
-          "evidence_id": "ec796696445c541",
-          "relevance_score": 4.693,
-          "reasons": [
-            "claim terms: lua, redis, reserve, stock"
-          ]
-        }
-      ],
-      "evidence_ids": [
-        "e6098a5520314a3",
-        "e4fec31a00ed11c",
-        "ec796696445c541"
-      ],
-      "technical_explanation": "并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。",
-      "technology_decision": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
-      "failure_modes": [
-        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
-      ],
-      "unsupported_claims": [
-        "简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
-        "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
-        "当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。"
-      ],
-      "likely_followups": [
-        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
-        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
-        "Redis 执行后客户端超时，如何避免重试导致重复扣减？"
-      ],
-      "related_knowledge": [
-        "Redis Lua 并发库存扣减",
-        "Race condition 与原子性边界"
-      ],
-      "improvement_directions": [
-        "改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。"
-      ],
-      "answerability": "medium",
-      "signals": [
-        "no_measurement"
-      ],
-      "provenance": "offline"
-    },
-    "kind": "simulation",
-    "weaknesses_observed": [
-      "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果"
-    ],
-    "new_knowledge_ids": [
-      "k0cde6ee95e39"
-    ]
-  },
-  {
-    "id": "t3",
-    "question": {
-      "id": "q3",
-      "claim_id": "c2",
-      "text": "上一答提到“并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境”；为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
-      "dimension": "Technology Decision",
-      "level": 3,
-      "depth": 2,
-      "subtopic": "decision",
-      "rationale": "上一答信号 no_measurement；继续验证 decision",
-      "based_on_turn": "t2",
-      "expected_points": [
-        "原子",
-        "重试",
-        "边界",
-        "验证"
-      ]
-    },
-    "answer": {
-      "question_id": "q3",
-      "direct_interview_answer": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n项目边界：当前项目材料可引用 [e6098a5520314a3]、[ec796696445c541]、[e4fec31a00ed11c]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。",
-      "evidence_selection": [
-        {
-          "evidence_id": "e6098a5520314a3",
-          "relevance_score": 15.483,
-          "reasons": [
-            "question terms: lua, redis",
+            "question terms: decrby, stock",
             "claim terms: atomic, decrby, lua, redis, stock",
             "artifact type relevant to question dimension"
           ]
         },
         {
           "evidence_id": "ec796696445c541",
-          "relevance_score": 13.366,
+          "relevance_score": 15.966,
           "reasons": [
-            "question terms: lua, redis",
+            "question terms: reserve, stock",
             "claim terms: lua, redis, reserve, stock",
-            "artifact type relevant to question dimension"
-          ]
-        },
-        {
-          "evidence_id": "e4fec31a00ed11c",
-          "relevance_score": 9.0,
-          "reasons": [
-            "question terms: lua, redis",
-            "claim terms: lua, redis, stock"
-          ]
-        }
-      ],
-      "evidence_ids": [
-        "e6098a5520314a3",
-        "ec796696445c541",
-        "e4fec31a00ed11c"
-      ],
-      "technical_explanation": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
-      "technology_decision": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
-      "failure_modes": [
-        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
-      ],
-      "unsupported_claims": [
-        "简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
-        "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
-        "当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。"
-      ],
-      "likely_followups": [
-        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
-        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
-        "Redis 执行后客户端超时，如何避免重试导致重复扣减？"
-      ],
-      "related_knowledge": [
-        "Redis Lua 并发库存扣减",
-        "Race condition 与原子性边界"
-      ],
-      "improvement_directions": [
-        "改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。"
-      ],
-      "answerability": "medium",
-      "signals": [
-        "no_measurement"
-      ],
-      "provenance": "offline"
-    },
-    "kind": "simulation",
-    "weaknesses_observed": [
-      "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果"
-    ],
-    "new_knowledge_ids": [
-      "k949b2bdaadf0"
-    ]
-  },
-  {
-    "id": "t4",
-    "question": {
-      "id": "q4",
-      "claim_id": "c2",
-      "text": "上一答提到“比较冲突率、业务事务边界和运维成本”；Redis 执行后客户端超时，如何避免重试导致重复扣减？",
-      "dimension": "Failure Handling",
-      "level": 5,
-      "depth": 3,
-      "subtopic": "failure",
-      "rationale": "上一答信号 no_measurement；继续验证 failure",
-      "based_on_turn": "t3",
-      "expected_points": [
-        "原子",
-        "重试",
-        "边界",
-        "验证"
-      ]
-    },
-    "answer": {
-      "question_id": "q4",
-      "direct_interview_answer": "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。 读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。\n\n选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n项目边界：当前项目材料可引用 [e6098a5520314a3]、[e4fec31a00ed11c]、[ec796696445c541]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。",
-      "evidence_selection": [
-        {
-          "evidence_id": "e6098a5520314a3",
-          "relevance_score": 11.733,
-          "reasons": [
-            "question terms: redis",
-            "claim terms: atomic, decrby, lua, redis, stock",
             "artifact type relevant to question dimension"
           ]
         },
@@ -306,83 +172,229 @@
           "evidence_id": "e4fec31a00ed11c",
           "relevance_score": 11.079,
           "reasons": [
-            "question terms: idempotency, redis",
+            "question terms: idempotency, stock",
             "claim terms: lua, redis, stock"
-          ]
-        },
-        {
-          "evidence_id": "ec796696445c541",
-          "relevance_score": 9.616,
-          "reasons": [
-            "question terms: redis",
-            "claim terms: lua, redis, reserve, stock",
-            "artifact type relevant to question dimension"
           ]
         }
       ],
+      "reference_material_ids": [
+        "item_6fc0945c96303bd1e208",
+        "item_d2587ee205a66af96880",
+        "item_44c7f623f2af3e758c15"
+      ],
+      "reasoning_basis": [
+        "简历项目与能力：秒杀库存服务 / Redis Lua 并发库存扣减",
+        "源码依据：[e6098a5520314a3] stock.lua:1",
+        "源码依据：[ec796696445c541] service.py:1",
+        "源码依据：[e4fec31a00ed11c] README.md:1",
+        "参考方法：[item_6fc0945c96303bd1e208] 如何设计幂等键，避免重复扣库存？",
+        "参考方法：[item_d2587ee205a66af96880] Redis Lua 脚本为什么能防止库存超卖？",
+        "参考方法：[item_44c7f623f2af3e758c15] Redis 库存扣减遇到超时重试怎么处理？",
+        "工程细节与实验参数按问题场景推演；实验参数不表示已测得的结果。"
+      ],
+      "inferred_details": [
+        "实现上我会用 request_id 标识一次业务请求：脚本先检查幂等结果，再检查库存，最后完成扣减并保存结果；重复请求直接返回第一次的结果。参数类型和取值在写入前检查，库存 key 和幂等 key 在集群里使用同一个 hash tag。",
+        "具体处理时，我会采用这个流程：客户端超时不能证明服务端失败，重试沿用同一个订单号，先读已保存的处理结果。",
+        "具体处理时，我会采用这个流程：幂等键使用订单号并记录处理结果，重试时先返回原结果；库存键和幂等键使用同一个 hash tag 保证落在同一槽位。",
+        "具体处理时，我会采用这个流程：脚本先查幂等结果，再检查库存，最后完成扣减并保存结果；重复请求返回第一次的结果。"
+      ],
+      "experiment_plan": [
+        "实验上，我会这样安排：实验同时比较有幂等和无幂等的对照组，确认重复请求不会重复扣减。",
+        "性能实验把数据库条件更新作为基线，固定机器、连接池和请求分布，逐档增加并发，同时记录成功吞吐、拒绝率、P95/P99、Redis CPU 和连接等待时间，观察瓶颈出现在哪一档。"
+      ],
       "evidence_ids": [
         "e6098a5520314a3",
-        "e4fec31a00ed11c",
-        "ec796696445c541"
+        "ec796696445c541",
+        "e4fec31a00ed11c"
       ],
-      "technical_explanation": "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。 读库存、判断和扣减若分成多个请求，会出现交错执行。把检查和扣减放入同一个 Redis Lua 脚本，可以阻止其他命令在脚本执行期间插入；这种原子执行不等于出错回滚，也不等于跨数据库事务。",
-      "technology_decision": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "technical_explanation": "核心是把读库存、判断库存和扣减放进同一个 Redis Lua 脚本，让其他请求无法插入这段读写过程。我关注的是两个业务不变量：库存不能变成负数，同一个业务请求只能扣减一次。",
+      "technology_decision": "我的选型顺序是先看事务边界，再看热点竞争。如果订单和库存都能在同一个数据库事务里完成，条件 UPDATE 就很直接；热点库存需要快速拒绝无库存请求时，我会用 Redis 承接入口，订单落库和对账分别处理。",
       "failure_modes": [
-        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+        "最容易出问题的是扣减成功后客户端超时，随后重试又扣一次。我会让重试复用原来的 request_id，幂等记录的保留期覆盖重试窗口。订单写入失败则进入可重试的补偿和对账流程；Lua 的原子执行不提供数据库事务回滚。"
       ],
       "unsupported_claims": [
-        "简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+        "简历自述：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
         "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
-        "当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。"
+        "当前选取证据未包含相关测试或评测；实验方案与执行结果分别记录。",
+        "参考回答只提供方法和表达结构；其中的个人经历、部署规模与测量结果不归属于候选人。"
       ],
       "likely_followups": [
         "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
         "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
-        "Redis 执行后客户端超时，如何避免重试导致重复扣减？"
+        "Redis 执行后客户端超时，如何避免重试导致重复扣减？",
+        "库存检查和扣减分成两个请求，为什么会发生 race condition？",
+        "流量放大十倍形成 hot key 后，你会如何调整设计？"
       ],
       "related_knowledge": [
         "Redis Lua 并发库存扣减",
         "Race condition 与原子性边界"
       ],
       "improvement_directions": [
-        "改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。"
+        "流量放大后，我会先区分连接池排队和单个热 key 饱和。入口做排队与限流，缩短 Lua 执行时间；单个库存桶成为瓶颈时再考虑分桶预分配，配套总量校验和余量回收，避免把跨桶一致性成本带进每次请求。"
       ],
       "answerability": "medium",
       "signals": [
-        "no_measurement"
+        "solid"
       ],
       "provenance": "offline"
     },
     "kind": "simulation",
     "weaknesses_observed": [
-      "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果"
+      "材料待核实：简历自述：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。"
     ],
     "new_knowledge_ids": [
       "kbbcd50aea195"
     ]
   },
   {
-    "id": "t5",
+    "id": "t3",
     "question": {
-      "id": "q5",
+      "id": "q3",
       "claim_id": "c2",
-      "text": "上一答提到“脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束”；库存检查和扣减分成两个请求，为什么会发生 race condition？",
-      "dimension": "Mechanism Understanding",
-      "level": 8,
-      "depth": 4,
-      "subtopic": "fundamentals",
-      "rationale": "上一答信号 no_measurement；继续验证 fundamentals",
-      "based_on_turn": "t4",
+      "text": "上一答提到“超时后我首先按原 request_id 查询或重试，复用第一次处理结果”；结合秒杀库存服务，并发增加后吞吐不再增长，P99 却变高，怎么定位瓶颈？",
+      "dimension": "Failure Handling",
+      "level": 6,
+      "depth": 2,
+      "subtopic": "debugging",
+      "rationale": "上一答信号 solid；继续验证 debugging；面经来源 item_1b2a31afb6addcd3d425",
+      "based_on_turn": "t2",
       "expected_points": [
         "原子",
         "重试",
         "边界",
         "验证"
-      ]
+      ],
+      "material_ids": [
+        "item_1b2a31afb6addcd3d425"
+      ],
+      "material_question": "并发增加后吞吐不再增长，P99 却变高，怎么定位瓶颈？"
     },
     "answer": {
-      "question_id": "q5",
-      "direct_interview_answer": "两个请求都读到同一份旧值再分别写回，会破坏业务不变量。同步必须覆盖完整的读—检查—写。原子性、隔离性和持久性是不同保证，不能由单条命令的原子性推导跨系统一致性。\n\n选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n项目边界：当前项目材料可引用 [e6098a5520314a3]、[ec796696445c541]、[e4fec31a00ed11c]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。",
+      "question_id": "q3",
+      "direct_interview_answer": "吞吐已经进入平台期，而 P99 继续升高，我首先怀疑请求在某个饱和资源前排队。先把端到端耗时拆成入口排队、连接池等待、服务端执行和下游调用四段，找出随并发一起增长的那一段。\n\nRedis 侧看 CPU、SLOWLOG 和脚本耗时：单线程已满或 Lua 耗时增加，重点检查热 key 与长脚本；服务端耗时稳定而客户端等待变长，则转查连接池容量、网络往返和入口排队。同时检查订单数据库的锁等待和写入耗时。另外检查压测机自身的 CPU、连接数和网络，排除发压端先饱和。\n\n复验时固定机器和数据分布，逐档提高到达率，每档保留吞吐、P99、队列长度、拒绝率和资源利用率。每轮只改一个变量，例如缩短脚本、调整连接池或降低热点集中度；看瓶颈位置是否移动，再决定优化还是扩容。资源已饱和时先限制并发和排队长度，防止超时与重试继续放大负载。\n\n实验上，我会这样安排：性能实验以数据库条件更新为对照，固定机器、连接池、数据规模和请求分布，逐档增加并发，同时记录成功吞吐、拒绝率、P95/P99、Redis CPU 和连接等待时间。",
+      "evidence_selection": [
+        {
+          "evidence_id": "e6098a5520314a3",
+          "relevance_score": 24.431,
+          "reasons": [
+            "question terms: atomic, decrby, stock",
+            "claim terms: atomic, decrby, lua, redis, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "ec796696445c541",
+          "relevance_score": 15.966,
+          "reasons": [
+            "question terms: reserve, stock",
+            "claim terms: lua, redis, reserve, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "e4fec31a00ed11c",
+          "relevance_score": 6.0,
+          "reasons": [
+            "question terms: stock",
+            "claim terms: lua, redis, stock"
+          ]
+        }
+      ],
+      "reference_material_ids": [
+        "item_654f2e272a88deb685f4",
+        "item_d2587ee205a66af96880",
+        "item_6fc0945c96303bd1e208"
+      ],
+      "reasoning_basis": [
+        "简历项目与能力：秒杀库存服务 / Redis Lua 并发库存扣减",
+        "源码依据：[e6098a5520314a3] stock.lua:1",
+        "源码依据：[ec796696445c541] service.py:1",
+        "源码依据：[e4fec31a00ed11c] README.md:1",
+        "参考方法：[item_654f2e272a88deb685f4] 库存方案怎样做正确性和性能实验？",
+        "参考方法：[item_d2587ee205a66af96880] Redis Lua 脚本为什么能防止库存超卖？",
+        "参考方法：[item_6fc0945c96303bd1e208] 如何设计幂等键，避免重复扣库存？",
+        "工程细节与实验参数按问题场景推演；实验参数不表示已测得的结果。"
+      ],
+      "inferred_details": [
+        "实现上我会用 request_id 标识一次业务请求：脚本先检查幂等结果，再检查库存，最后完成扣减并保存结果；重复请求直接返回第一次的结果。参数类型和取值在写入前检查，库存 key 和幂等 key 在集群里使用同一个 hash tag。",
+        "具体处理时，我会采用这个流程：把库存检查、幂等键检查和扣减放入同一段 Lua 脚本，以订单号作为业务幂等键。",
+        "具体处理时，我会采用这个流程：幂等键使用订单号并记录处理结果，重试时先返回原结果；库存键和幂等键使用同一个 hash tag 保证落在同一槽位。",
+        "具体处理时，我会采用这个流程：把正确性检查与性能曲线一起看，才知道吞吐变化来自实现、负载还是资源瓶颈。"
+      ],
+      "experiment_plan": [
+        "实验上，我会这样安排：性能实验以数据库条件更新为对照，固定机器、连接池、数据规模和请求分布，逐档增加并发，同时记录成功吞吐、拒绝率、P95/P99、Redis CPU 和连接等待时间。",
+        "实验上，我会这样安排：性能实验以数据库条件更新为对照，固定机器、连接池、数据规模和请求分布，逐档增加并发，同时记录成功吞吐、拒绝率、P95/P99、Redis CPU 和连接等待时间。"
+      ],
+      "evidence_ids": [
+        "e6098a5520314a3",
+        "ec796696445c541",
+        "e4fec31a00ed11c"
+      ],
+      "technical_explanation": "吞吐已经进入平台期，而 P99 继续升高，我首先怀疑请求在某个饱和资源前排队。先把端到端耗时拆成入口排队、连接池等待、服务端执行和下游调用四段，找出随并发一起增长的那一段。",
+      "technology_decision": "我的选型顺序是先看事务边界，再看热点竞争。如果订单和库存都能在同一个数据库事务里完成，条件 UPDATE 就很直接；热点库存需要快速拒绝无库存请求时，我会用 Redis 承接入口，订单落库和对账分别处理。",
+      "failure_modes": [
+        "最容易出问题的是扣减成功后客户端超时，随后重试又扣一次。我会让重试复用原来的 request_id，幂等记录的保留期覆盖重试窗口。订单写入失败则进入可重试的补偿和对账流程；Lua 的原子执行不提供数据库事务回滚。"
+      ],
+      "unsupported_claims": [
+        "简历自述：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+        "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
+        "当前选取证据未包含相关测试或评测；实验方案与执行结果分别记录。",
+        "参考回答只提供方法和表达结构；其中的个人经历、部署规模与测量结果不归属于候选人。"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
+        "Redis 执行后客户端超时，如何避免重试导致重复扣减？",
+        "库存检查和扣减分成两个请求，为什么会发生 race condition？",
+        "流量放大十倍形成 hot key 后，你会如何调整设计？"
+      ],
+      "related_knowledge": [
+        "Redis Lua 并发库存扣减",
+        "Race condition 与原子性边界"
+      ],
+      "improvement_directions": [
+        "流量放大后，我会先区分连接池排队和单个热 key 饱和。入口做排队与限流，缩短 Lua 执行时间；单个库存桶成为瓶颈时再考虑分桶预分配，配套总量校验和余量回收，避免把跨桶一致性成本带进每次请求。"
+      ],
+      "answerability": "medium",
+      "signals": [
+        "solid"
+      ],
+      "provenance": "offline"
+    },
+    "kind": "simulation",
+    "weaknesses_observed": [
+      "材料待核实：简历自述：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。"
+    ],
+    "new_knowledge_ids": [
+      "k7c22a9e673cd"
+    ]
+  },
+  {
+    "id": "t4",
+    "question": {
+      "id": "q4",
+      "claim_id": "c2",
+      "text": "上一答提到“吞吐已经进入平台期，而 P99 继续升高，我首先怀疑请求在某个饱和资源前排队”；结合秒杀库存服务，数据库已经提交但连接断开时，客户端如何拿到最终结果？",
+      "dimension": "Failure Handling",
+      "level": 5,
+      "depth": 3,
+      "subtopic": "failure",
+      "rationale": "上一答信号 solid；继续验证 failure；面经来源 item_1b49c5af378fb1933297",
+      "based_on_turn": "t3",
+      "expected_points": [
+        "原子",
+        "重试",
+        "边界",
+        "验证"
+      ],
+      "material_ids": [
+        "item_1b49c5af378fb1933297"
+      ],
+      "material_question": "数据库已经提交但连接断开时，客户端如何拿到最终结果？"
+    },
+    "answer": {
+      "question_id": "q4",
+      "direct_interview_answer": "数据库已经提交时，连接断开只影响结果送达。我会用原业务唯一键查询持久化的处理状态和结果，完成态直接返回原结果，处理中返回可查询的任务状态；客户端继续沿用这个键，避免发起第二次业务操作。\n\n实现上，业务写入与最终结果记录放在同一个事务里，用唯一约束处理并发重放。如果还涉及消息发送，则记录待投递事件并重试投递，消费端按事件 ID 去重；恢复任务只推进缺失的状态，不重新执行已经提交的扣减。\n\n验证时在提交成功到写回响应之间断开连接，随后并发重试同一个业务键，检查每次返回都对应同一条结果、业务只生效一次，再覆盖恢复进程重启和重复投递。\n\n实验上，我会这样安排：接着重复发送同一个 request_id，在扣减完成后断开连接，再注入订单写入失败，检查重试和补偿多次执行时业务效果仍然只有一次。",
       "evidence_selection": [
         {
           "evidence_id": "e6098a5520314a3",
@@ -411,42 +423,193 @@
           ]
         }
       ],
+      "reference_material_ids": [
+        "item_654f2e272a88deb685f4",
+        "item_44c7f623f2af3e758c15",
+        "item_d2587ee205a66af96880",
+        "item_4036cfb76cc5ef6699b4"
+      ],
+      "reasoning_basis": [
+        "简历项目与能力：秒杀库存服务 / Redis Lua 并发库存扣减",
+        "源码依据：[e6098a5520314a3] stock.lua:1",
+        "源码依据：[ec796696445c541] service.py:1",
+        "源码依据：[e4fec31a00ed11c] README.md:1",
+        "参考方法：[item_654f2e272a88deb685f4] 库存方案怎样做正确性和性能实验？",
+        "参考方法：[item_44c7f623f2af3e758c15] Redis 库存扣减遇到超时重试怎么处理？",
+        "参考方法：[item_d2587ee205a66af96880] Redis Lua 脚本为什么能防止库存超卖？",
+        "参考方法：[item_4036cfb76cc5ef6699b4] 如何设计有边界的服务重试？",
+        "工程细节与实验参数按问题场景推演；实验参数不表示已测得的结果。"
+      ],
+      "inferred_details": [
+        "实现上我会用 request_id 标识一次业务请求：脚本先检查幂等结果，再检查库存，最后完成扣减并保存结果；重复请求直接返回第一次的结果。参数类型和取值在写入前检查，库存 key 和幂等 key 在集群里使用同一个 hash tag。",
+        "具体处理时，我会采用这个流程：脚本先查幂等结果，再检查库存，最后完成扣减并保存结果；重复请求返回第一次的结果。",
+        "具体处理时，我会采用这个流程：客户端超时不能证明服务端失败，重试沿用同一个订单号，先读已保存的处理结果。",
+        "具体处理时，我会采用这个流程：写操作先明确业务唯一键，用数据库唯一约束把去重和写入放进同一个事务。"
+      ],
+      "experiment_plan": [
+        "实验上，我会这样安排：接着重复发送同一个 request_id，在扣减完成后断开连接，再注入订单写入失败，检查重试和补偿多次执行时业务效果仍然只有一次。",
+        "实验上，我会这样安排：接着重复发送同一个 request_id，在扣减完成后断开连接，再注入订单写入失败，检查重试和补偿多次执行时业务效果仍然只有一次。"
+      ],
       "evidence_ids": [
         "e6098a5520314a3",
         "ec796696445c541",
         "e4fec31a00ed11c"
       ],
-      "technical_explanation": "两个请求都读到同一份旧值再分别写回，会破坏业务不变量。同步必须覆盖完整的读—检查—写。原子性、隔离性和持久性是不同保证，不能由单条命令的原子性推导跨系统一致性。",
-      "technology_decision": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "technical_explanation": "数据库已经提交时，连接断开只影响结果送达。我会用原业务唯一键查询持久化的处理状态和结果，完成态直接返回原结果，处理中返回可查询的任务状态；客户端继续沿用这个键，避免发起第二次业务操作。",
+      "technology_decision": "我的选型顺序是先看事务边界，再看热点竞争。如果订单和库存都能在同一个数据库事务里完成，条件 UPDATE 就很直接；热点库存需要快速拒绝无库存请求时，我会用 Redis 承接入口，订单落库和对账分别处理。",
       "failure_modes": [
-        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+        "最容易出问题的是扣减成功后客户端超时，随后重试又扣一次。我会让重试复用原来的 request_id，幂等记录的保留期覆盖重试窗口。订单写入失败则进入可重试的补偿和对账流程；Lua 的原子执行不提供数据库事务回滚。"
       ],
       "unsupported_claims": [
-        "简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+        "简历自述：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
         "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
-        "当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。"
+        "当前选取证据未包含相关测试或评测；实验方案与执行结果分别记录。",
+        "参考回答只提供方法和表达结构；其中的个人经历、部署规模与测量结果不归属于候选人。"
       ],
       "likely_followups": [
         "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
         "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
-        "Redis 执行后客户端超时，如何避免重试导致重复扣减？"
+        "Redis 执行后客户端超时，如何避免重试导致重复扣减？",
+        "库存检查和扣减分成两个请求，为什么会发生 race condition？",
+        "流量放大十倍形成 hot key 后，你会如何调整设计？"
       ],
       "related_knowledge": [
         "Redis Lua 并发库存扣减",
         "Race condition 与原子性边界"
       ],
       "improvement_directions": [
-        "改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。"
+        "流量放大后，我会先区分连接池排队和单个热 key 饱和。入口做排队与限流，缩短 Lua 执行时间；单个库存桶成为瓶颈时再考虑分桶预分配，配套总量校验和余量回收，避免把跨桶一致性成本带进每次请求。"
       ],
       "answerability": "medium",
       "signals": [
-        "no_measurement"
+        "solid"
       ],
       "provenance": "offline"
     },
     "kind": "simulation",
     "weaknesses_observed": [
-      "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果"
+      "材料待核实：简历自述：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。"
+    ],
+    "new_knowledge_ids": []
+  },
+  {
+    "id": "t5",
+    "question": {
+      "id": "q5",
+      "claim_id": "c2",
+      "text": "上一答提到“数据库已经提交时，连接断开只影响结果送达”；结合秒杀库存服务，补偿任务重复执行会不会多加库存？",
+      "dimension": "Failure Handling",
+      "level": 5,
+      "depth": 4,
+      "subtopic": "failure",
+      "rationale": "上一答信号 solid；继续验证 failure；面经来源 item_76d0b0e7523a69902903",
+      "based_on_turn": "t4",
+      "expected_points": [
+        "原子",
+        "重试",
+        "边界",
+        "验证"
+      ],
+      "material_ids": [
+        "item_76d0b0e7523a69902903"
+      ],
+      "material_question": "补偿任务重复执行会不会多加库存？"
+    },
+    "answer": {
+      "question_id": "q5",
+      "direct_interview_answer": "补偿本身也要幂等。我用原订单 ID 和补偿类型标识一次归还操作，只有状态从已扣减成功迁移到已补偿时才增加库存。状态检查、归还库存和保存补偿结果放在同一原子边界内；重复任务直接返回已补偿结果，不能每收到一条消息就再加一次库存。\n\n恢复时我会按业务键核对幂等结果、库存变化和订单状态：结果已保存就复用，订单缺失则推进补偿，状态不一致则进入对账。每一步都记录状态迁移，重复执行仍得到相同结果。\n\n实验上，我会这样安排：固定初始库存为 100，使用 200 个并发请求争抢，并让同一订单号重复发起 3 次。验收条件是：成功订单不超过 100，库存不为负，重复订单只有一次扣减。",
+      "evidence_selection": [
+        {
+          "evidence_id": "e6098a5520314a3",
+          "relevance_score": 18.082,
+          "reasons": [
+            "question terms: decrby, stock",
+            "claim terms: atomic, decrby, lua, redis, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "ec796696445c541",
+          "relevance_score": 15.966,
+          "reasons": [
+            "question terms: reserve, stock",
+            "claim terms: lua, redis, reserve, stock",
+            "artifact type relevant to question dimension"
+          ]
+        },
+        {
+          "evidence_id": "e4fec31a00ed11c",
+          "relevance_score": 6.0,
+          "reasons": [
+            "question terms: stock",
+            "claim terms: lua, redis, stock"
+          ]
+        }
+      ],
+      "reference_material_ids": [
+        "item_d2587ee205a66af96880",
+        "item_44c7f623f2af3e758c15"
+      ],
+      "reasoning_basis": [
+        "简历项目与能力：秒杀库存服务 / Redis Lua 并发库存扣减",
+        "源码依据：[e6098a5520314a3] stock.lua:1",
+        "源码依据：[ec796696445c541] service.py:1",
+        "源码依据：[e4fec31a00ed11c] README.md:1",
+        "参考方法：[item_d2587ee205a66af96880] Redis Lua 脚本为什么能防止库存超卖？",
+        "参考方法：[item_44c7f623f2af3e758c15] Redis 库存扣减遇到超时重试怎么处理？",
+        "工程细节与实验参数按问题场景推演；实验参数不表示已测得的结果。"
+      ],
+      "inferred_details": [
+        "实现上我会用 request_id 标识一次业务请求：脚本先检查幂等结果，再检查库存，最后完成扣减并保存结果；重复请求直接返回第一次的结果。参数类型和取值在写入前检查，库存 key 和幂等 key 在集群里使用同一个 hash tag。",
+        "具体处理时，我会采用这个流程：脚本先查幂等结果，再检查库存，最后完成扣减并保存结果；重复请求返回第一次的结果。",
+        "对账任务我会按业务请求 ID 比较预扣、订单和补偿状态，只重放缺失的状态迁移，并保留重试次数和人工处理入口。",
+        "具体处理时，我会采用这个流程：客户端超时不能证明服务端失败，重试沿用同一个订单号，先读已保存的处理结果。"
+      ],
+      "experiment_plan": [
+        "实验上，我会这样安排：固定初始库存为 100，使用 200 个并发请求争抢，并让同一订单号重复发起 3 次。",
+        "验证时，我会检查：成功订单不超过 100，库存不为负，重复订单只有一次扣减。",
+        "实验上，我会这样安排：在发送成功响应前注入延迟，让客户端以 50 毫秒超时重试；分别覆盖脚本执行前断连、执行后响应丢失、幂等记录过期，检查重试返回值和库存是否一致。",
+        "性能实验把数据库条件更新作为基线，固定机器、连接池和请求分布，逐档增加并发，同时记录成功吞吐、拒绝率、P95/P99、Redis CPU 和连接等待时间，观察瓶颈出现在哪一档。"
+      ],
+      "evidence_ids": [
+        "e6098a5520314a3",
+        "ec796696445c541",
+        "e4fec31a00ed11c"
+      ],
+      "technical_explanation": "核心是把读库存、判断库存和扣减放进同一个 Redis Lua 脚本，让其他请求无法插入这段读写过程。我关注的是两个业务不变量：库存不能变成负数，同一个业务请求只能扣减一次。",
+      "technology_decision": "我的选型顺序是先看事务边界，再看热点竞争。如果订单和库存都能在同一个数据库事务里完成，条件 UPDATE 就很直接；热点库存需要快速拒绝无库存请求时，我会用 Redis 承接入口，订单落库和对账分别处理。",
+      "failure_modes": [
+        "最容易出问题的是扣减成功后客户端超时，随后重试又扣一次。我会让重试复用原来的 request_id，幂等记录的保留期覆盖重试窗口。订单写入失败则进入可重试的补偿和对账流程；Lua 的原子执行不提供数据库事务回滚。"
+      ],
+      "unsupported_claims": [
+        "简历自述：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+        "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
+        "当前选取证据未包含相关测试或评测；实验方案与执行结果分别记录。",
+        "参考回答只提供方法和表达结构；其中的个人经历、部署规模与测量结果不归属于候选人。"
+      ],
+      "likely_followups": [
+        "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
+        "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
+        "Redis 执行后客户端超时，如何避免重试导致重复扣减？",
+        "库存检查和扣减分成两个请求，为什么会发生 race condition？",
+        "流量放大十倍形成 hot key 后，你会如何调整设计？"
+      ],
+      "related_knowledge": [
+        "Redis Lua 并发库存扣减",
+        "Race condition 与原子性边界"
+      ],
+      "improvement_directions": [
+        "流量放大后，我会先区分连接池排队和单个热 key 饱和。入口做排队与限流，缩短 Lua 执行时间；单个库存桶成为瓶颈时再考虑分桶预分配，配套总量校验和余量回收，避免把跨桶一致性成本带进每次请求。"
+      ],
+      "answerability": "medium",
+      "signals": [
+        "solid"
+      ],
+      "provenance": "offline"
+    },
+    "kind": "simulation",
+    "weaknesses_observed": [
+      "材料待核实：简历自述：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。"
     ],
     "new_knowledge_ids": []
   },
@@ -455,88 +618,121 @@
     "question": {
       "id": "q6",
       "claim_id": "c3",
-      "text": "上一答提到“两个请求都读到同一份旧值再分别写回，会破坏业务不变量”；结合刚才的边界，如果业务更重视持久化一致性而不是吞吐，你会如何重新选择Redis Lua 并发库存扣减的替代方案？",
-      "dimension": "Technology Decision",
-      "level": 3,
+      "text": "上一答提到“补偿本身也要幂等”；结合秒杀库存服务，如果简历写吞吐提升，你会怎样设计可信的对照实验？",
+      "dimension": "Evaluation / Measurement",
+      "level": 4,
       "depth": 0,
-      "subtopic": "decision",
-      "rationale": "上一答信号 no_measurement；继续验证 decision",
+      "subtopic": "evaluation",
+      "rationale": "上一答信号 solid；继续验证 evaluation；面经来源 item_1b2a31afb6addcd3d425",
       "based_on_turn": "t5",
       "expected_points": [
         "原子",
         "重试",
         "边界",
         "验证"
-      ]
+      ],
+      "material_ids": [
+        "item_1b2a31afb6addcd3d425"
+      ],
+      "material_question": "如果简历写吞吐提升，你会怎样设计可信的对照实验？"
     },
     "answer": {
       "question_id": "q6",
-      "direct_interview_answer": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n选型考虑：比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。\n\n项目边界：当前项目材料可引用 [e6098a5520314a3]、[ec796696445c541]、[e4fec31a00ed11c]；源码原文另列。源码观察不能独立证明个人贡献、生产规模或提升比例；这些结论需要补充可核验结果。",
+      "direct_interview_answer": "我会把实验拆成正确性验证、对照实验和故障测试三部分，先固定输入与资源，再比较结果。\n\n实验上，我会这样安排：先设初始库存为 100，用 1,000 个不同请求并发争抢，验证成功扣减数等于 100、库存非负，并把成功结果与订单逐条对账。接着重复发送同一个 request_id，在扣减完成后断开连接，再注入订单写入失败，检查重试和补偿多次执行时业务效果仍然只有一次。性能实验以数据库条件更新为对照，固定机器、连接池、数据规模和请求分布，逐档增加并发，同时记录成功吞吐、拒绝率、P95/P99、Redis CPU 和连接等待时间。",
       "evidence_selection": [
         {
           "evidence_id": "e6098a5520314a3",
-          "relevance_score": 31.931,
+          "relevance_score": 14.466,
           "reasons": [
-            "question terms: atomic, decrby, lua, redis, stock",
-            "claim terms: atomic, decrby, lua, redis, stock",
-            "artifact type relevant to question dimension"
+            "question terms: decrby, stock",
+            "claim terms: atomic, decrby, lua, redis, stock"
           ]
         },
         {
           "evidence_id": "ec796696445c541",
-          "relevance_score": 23.466,
+          "relevance_score": 12.773,
           "reasons": [
-            "question terms: lua, redis, reserve, stock",
-            "claim terms: lua, redis, reserve, stock",
-            "artifact type relevant to question dimension"
+            "question terms: reserve, stock",
+            "claim terms: lua, redis, reserve, stock"
           ]
         },
         {
           "evidence_id": "e4fec31a00ed11c",
-          "relevance_score": 12.0,
+          "relevance_score": 6.0,
           "reasons": [
-            "question terms: lua, redis, stock",
+            "question terms: stock",
             "claim terms: lua, redis, stock"
           ]
         }
+      ],
+      "reference_material_ids": [
+        "item_654f2e272a88deb685f4",
+        "item_6fc0945c96303bd1e208",
+        "item_d2587ee205a66af96880"
+      ],
+      "reasoning_basis": [
+        "简历项目与能力：秒杀库存服务 / Redis Lua 并发库存扣减",
+        "源码依据：[e6098a5520314a3] stock.lua:1",
+        "源码依据：[ec796696445c541] service.py:1",
+        "源码依据：[e4fec31a00ed11c] README.md:1",
+        "参考方法：[item_654f2e272a88deb685f4] 库存方案怎样做正确性和性能实验？",
+        "参考方法：[item_6fc0945c96303bd1e208] 如何设计幂等键，避免重复扣库存？",
+        "参考方法：[item_d2587ee205a66af96880] Redis Lua 脚本为什么能防止库存超卖？",
+        "工程细节与实验参数按问题场景推演；实验参数不表示已测得的结果。"
+      ],
+      "inferred_details": [
+        "实现上我会用 request_id 标识一次业务请求：脚本先检查幂等结果，再检查库存，最后完成扣减并保存结果；重复请求直接返回第一次的结果。参数类型和取值在写入前检查，库存 key 和幂等 key 在集群里使用同一个 hash tag。",
+        "具体处理时，我会采用这个流程：幂等键使用订单号并记录处理结果，重试时先返回原结果；库存键和幂等键使用同一个 hash tag 保证落在同一槽位。",
+        "具体处理时，我会采用这个流程：把库存检查、幂等键检查和扣减放入同一段 Lua 脚本，以订单号作为业务幂等键。",
+        "具体处理时，我会采用这个流程：把正确性检查与性能曲线一起看，才知道吞吐变化来自实现、负载还是资源瓶颈。"
+      ],
+      "experiment_plan": [
+        "实验上，我会这样安排：先设初始库存为 100，用 1,000 个不同请求并发争抢，验证成功扣减数等于 100、库存非负，并把成功结果与订单逐条对账。",
+        "实验上，我会这样安排：接着重复发送同一个 request_id，在扣减完成后断开连接，再注入订单写入失败，检查重试和补偿多次执行时业务效果仍然只有一次。",
+        "实验上，我会这样安排：性能实验以数据库条件更新为对照，固定机器、连接池、数据规模和请求分布，逐档增加并发，同时记录成功吞吐、拒绝率、P95/P99、Redis CPU 和连接等待时间。"
       ],
       "evidence_ids": [
         "e6098a5520314a3",
         "ec796696445c541",
         "e4fec31a00ed11c"
       ],
-      "technical_explanation": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
-      "technology_decision": "比较冲突率、业务事务边界和运维成本。数据库条件更新更贴近持久化事务；Redis Lua 适合短小、同实例内的原子操作，但需要单独处理与订单数据库的一致性。",
+      "technical_explanation": "核心是把读库存、判断库存和扣减放进同一个 Redis Lua 脚本，让其他请求无法插入这段读写过程。我关注的是两个业务不变量：库存不能变成负数，同一个业务请求只能扣减一次。",
+      "technology_decision": "我的选型顺序是先看事务边界，再看热点竞争。如果订单和库存都能在同一个数据库事务里完成，条件 UPDATE 就很直接；热点库存需要快速拒绝无库存请求时，我会用 Redis 承接入口，订单落库和对账分别处理。",
       "failure_modes": [
-        "脚本过长会阻塞其他请求；运行时错误不回滚先前写入；故障切换可能丢失尚未复制的写；请求超时后重试可能重复扣减；集群多 key 操作需要满足槽位约束。"
+        "最容易出问题的是扣减成功后客户端超时，随后重试又扣一次。我会让重试复用原来的 request_id，幂等记录的保留期覆盖重试窗口。订单写入失败则进入可重试的补偿和对账流程；Lua 的原子执行不提供数据库事务回滚。"
       ],
       "unsupported_claims": [
-        "简历陈述仍需核实：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
+        "简历自述：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。",
         "源代码片段不能独立证明个人 Ownership、生产部署规模、性能提升比例或未展示的容错能力。",
-        "当前选取证据未包含相关测试或评测；无法确认正确性验证与性能结论。"
+        "当前选取证据未包含相关测试或评测；实验方案与执行结果分别记录。",
+        "参考回答只提供方法和表达结构；其中的个人经历、部署规模与测量结果不归属于候选人。"
       ],
       "likely_followups": [
         "为什么这里选择 Redis Lua 而不是数据库乐观锁，决策依据是什么？",
         "如何证明并发扣减没有超卖，并可靠测量吞吐和 P99？",
-        "Redis 执行后客户端超时，如何避免重试导致重复扣减？"
+        "Redis 执行后客户端超时，如何避免重试导致重复扣减？",
+        "库存检查和扣减分成两个请求，为什么会发生 race condition？",
+        "流量放大十倍形成 hot key 后，你会如何调整设计？"
       ],
       "related_knowledge": [
         "Redis Lua 并发库存扣减",
         "Race condition 与原子性边界"
       ],
       "improvement_directions": [
-        "改进方向（未证明已实现）：并发提交超过初始库存的请求，检查库存非负且成功数与扣减数一致；注入超时重试和节点故障，检查幂等性及订单对账，再报告吞吐量、P99、客户端数和测试环境。"
+        "流量放大后，我会先区分连接池排队和单个热 key 饱和。入口做排队与限流，缩短 Lua 执行时间；单个库存桶成为瓶颈时再考虑分桶预分配，配套总量校验和余量回收，避免把跨桶一致性成本带进每次请求。"
       ],
       "answerability": "medium",
       "signals": [
-        "no_measurement"
+        "solid"
       ],
       "provenance": "offline"
     },
     "kind": "simulation",
     "weaknesses_observed": [
-      "材料缺口（不代表用户不会）：尚未提供与当前问题相关的可复现正确性测试或评测结果"
+      "材料待核实：简历自述：设计 Redis + Lua 库存扣减，解决高并发下超卖问题，声称吞吐提升 40%。"
     ],
-    "new_knowledge_ids": []
+    "new_knowledge_ids": [
+      "k0cde6ee95e39"
+    ]
   }
 ]

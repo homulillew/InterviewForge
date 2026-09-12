@@ -4,6 +4,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from interview_forge.materials.models import MaterialItem
 
 Text = Annotated[str, Field(min_length=1, max_length=16000)]
 Score = Annotated[float, Field(ge=0, le=1)]
@@ -106,6 +107,8 @@ class InterviewQuestion(Model):
     rationale: Text
     based_on_turn: str | None = None
     expected_points: list[str] = Field(default_factory=list)
+    material_ids: list[str] = Field(default_factory=list)
+    material_question: str | None = None
 
 
 class EvidenceMatch(Model):
@@ -118,6 +121,10 @@ class Answer(Model):
     question_id: Text
     direct_interview_answer: Text
     evidence_selection: list[EvidenceMatch] = Field(default_factory=list)
+    reference_material_ids: list[str] = Field(default_factory=list)
+    reasoning_basis: list[str] = Field(default_factory=list)
+    inferred_details: list[str] = Field(default_factory=list)
+    experiment_plan: list[str] = Field(default_factory=list)
     evidence_ids: list[str] = Field(default_factory=list)
     technical_explanation: Text
     technology_decision: Text
@@ -268,6 +275,7 @@ class SessionConfig(Model):
     max_turns: int = Field(default=12, ge=1, le=100)
     max_depth: int = Field(default=5, ge=1, le=10)
     deep_dive: bool = False
+    library_path: str | None = None
 
 
 class InterviewSession(Model):
@@ -281,6 +289,7 @@ class InterviewSession(Model):
     claims: list[CapabilityClaim]
     repository_map: RepositoryMap
     evidences: list[RepoEvidence]
+    materials: list[MaterialItem] = Field(default_factory=list)
     transcript: list[InterviewTurn] = Field(default_factory=list)
     knowledge_graph: KnowledgeGraph = Field(default_factory=KnowledgeGraph)
     study_cards: list[StudyCard] = Field(default_factory=list)
@@ -299,6 +308,8 @@ class InterviewSession(Model):
         sids, cids, eids = unique(self.statements), unique(self.claims), unique(self.evidences)
         tids = unique(self.transcript)
         nids = unique(self.knowledge_graph.nodes)
+        mids = unique(self.materials)
+        materials_by_id = {m.id: m for m in self.materials}
         unique(self.study_plan)
         unique(self.retests)
         questions = [t.question for t in self.transcript] + [r.question for r in self.retests]
@@ -319,9 +330,20 @@ class InterviewSession(Model):
                 if e.id not in next(c.evidence_ids for c in self.claims if c.id == cid):
                     raise ValueError("evidence links must be bidirectional")
         for q in questions:
+            if not set(q.material_ids) <= mids:
+                raise ValueError("question refers to missing material snapshot")
+            if any(materials_by_id[mid].kind != "interview" for mid in q.material_ids):
+                raise ValueError("interviewer can only cite interview material")
+            if q.material_question is not None and not any(q.material_question in
+                    [materials_by_id[mid].question, *materials_by_id[mid].followups] for mid in q.material_ids):
+                raise ValueError("question's source wording is not in cited material")
             if q.claim_id not in cids or (q.based_on_turn and q.based_on_turn not in tids):
                 raise ValueError("dangling question provenance")
         def validate_answer(answer, question):
+            if not set(answer.reference_material_ids) <= mids:
+                raise ValueError("answer refers to missing material snapshot")
+            if any(materials_by_id[mid].kind != "answer" for mid in answer.reference_material_ids):
+                raise ValueError("answer references must be answer documents")
             allowed = {e.id for e in self.evidences if question.claim_id in e.supports_claim}
             if not set(answer.evidence_ids) <= allowed:
                 raise ValueError("answer evidence does not support its claim context")

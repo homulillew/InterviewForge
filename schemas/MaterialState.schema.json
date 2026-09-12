@@ -1,0 +1,239 @@
+{
+  "$defs": {
+    "MaterialDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "interview",
+            "answer"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "filename": {
+          "minLength": 1,
+          "title": "Filename",
+          "type": "string"
+        },
+        "source_file": {
+          "minLength": 1,
+          "title": "Source File",
+          "type": "string"
+        },
+        "source_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Hash",
+          "type": "string"
+        },
+        "imported_at": {
+          "minLength": 1,
+          "title": "Imported At",
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "company": {
+          "default": "",
+          "title": "Company",
+          "type": "string"
+        },
+        "role": {
+          "default": "",
+          "title": "Role",
+          "type": "string"
+        },
+        "blocks": {
+          "items": {
+            "$ref": "#/$defs/SourceBlock"
+          },
+          "title": "Blocks",
+          "type": "array"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "item_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Item Ids",
+          "type": "array"
+        },
+        "extraction_method": {
+          "default": "offline",
+          "title": "Extraction Method",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "filename",
+        "source_file",
+        "source_hash",
+        "imported_at"
+      ],
+      "title": "MaterialDocument",
+      "type": "object"
+    },
+    "MaterialItem": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "document_id": {
+          "minLength": 1,
+          "title": "Document Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "interview",
+            "answer"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "title": "Title",
+          "type": "string"
+        },
+        "question": {
+          "default": "",
+          "title": "Question",
+          "type": "string"
+        },
+        "answer": {
+          "default": "",
+          "title": "Answer",
+          "type": "string"
+        },
+        "followups": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Followups",
+          "type": "array"
+        },
+        "topics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Topics",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "company": {
+          "default": "",
+          "title": "Company",
+          "type": "string"
+        },
+        "role": {
+          "default": "",
+          "title": "Role",
+          "type": "string"
+        },
+        "source_file": {
+          "minLength": 1,
+          "title": "Source File",
+          "type": "string"
+        },
+        "location": {
+          "minLength": 1,
+          "title": "Location",
+          "type": "string"
+        },
+        "source_quote": {
+          "minLength": 1,
+          "title": "Source Quote",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "document_id",
+        "kind",
+        "source_file",
+        "location",
+        "source_quote"
+      ],
+      "title": "MaterialItem",
+      "type": "object"
+    },
+    "SourceBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "location": {
+          "minLength": 1,
+          "title": "Location",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "method": {
+          "default": "text",
+          "minLength": 1,
+          "title": "Method",
+          "type": "string"
+        }
+      },
+      "required": [
+        "location",
+        "text"
+      ],
+      "title": "SourceBlock",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "documents": {
+      "items": {
+        "$ref": "#/$defs/MaterialDocument"
+      },
+      "title": "Documents",
+      "type": "array"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/MaterialItem"
+      },
+      "title": "Items",
+      "type": "array"
+    }
+  },
+  "title": "MaterialState",
+  "type": "object"
+}

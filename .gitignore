@@ -9,3 +9,5 @@ dist/
 .env*
 sessions/
 .interviewforge.lock
+
+.interviewforge/

@@ -59,8 +59,8 @@ def test_test_definition_does_not_count_as_measurement(session):
     test = evidence(session, "test", "test_stock.py", "def test_redis_retry():\n    assert reserve(request_id) >= 0", "test")
     answer = RepositoryAnswerer().answer(q, session.claims[0], [test])
     assert answer.evidence_ids == ["test"]
-    assert "no_measurement" in answer.signals
-    assert "solid" not in answer.signals
+    assert "no_measurement" not in answer.signals
+    assert answer.experiment_plan
     assert any("不证明已经执行" in gap for gap in answer.unsupported_claims)
 
 
@@ -73,9 +73,12 @@ def test_direct_answer_is_separate_from_full_source(session, tmp_path):
     store = SessionStore(tmp_path)
     export_reports(store, session)
     report = (tmp_path/"best_answer_cards.md").read_text()
-    assert source.excerpt in report
-    assert "Retrieval Rationale" in report
+    assert source.excerpt not in report
+    assert "Retrieval Rationale" not in report
     assert answer.direct_interview_answer in report
+    audit = (tmp_path/"answer_audit.md").read_text()
+    assert source.excerpt in audit
+    assert "Retrieval Rationale" in audit
 
 
 def test_legacy_snapshot_without_retrieval_metadata_loads(session):

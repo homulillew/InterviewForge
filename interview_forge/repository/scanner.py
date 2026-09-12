@@ -9,7 +9,7 @@ import subprocess
 from interview_forge.curricula import TOPICS, topic_for
 from interview_forge.schemas.models import CapabilityClaim, RepoEvidence, RepositoryMap
 
-SKIP_DIRS = {".git", ".venv", "venv", "node_modules", "__pycache__", "dist", "build", ".pytest_cache", "sessions", ".idea"}
+SKIP_DIRS = {".interviewforge", ".git", ".venv", "venv", "node_modules", "__pycache__", "dist", "build", ".pytest_cache", "sessions", ".idea"}
 EXTENSIONS = {".py", ".java", ".go", ".js", ".ts", ".tsx", ".rs", ".lua", ".sql", ".md", ".txt", ".toml", ".json", ".yaml", ".yml", ".xml", ".sh", ".gradle", ".properties"}
 SECRET_FILE = re.compile(r"(^\.env($|\.)|credential|secret|id_rsa|id_ed25519|\.pem$|\.key$)", re.I)
 SECRET_LINE = re.compile(r"(?:api[_-]?key|password|secret|access[_-]?token)\s*[=:]\s*[\"']?[^\s\"']{8,}|-----BEGIN .*PRIVATE KEY|(?:sk-|ghp_)[A-Za-z0-9_-]{16,}", re.I)
@@ -33,7 +33,7 @@ def classify(path: str) -> str:
 
 
 def scan_repository(root: Path, claims: list[CapabilityClaim], exclude: Path | None = None,
-                    max_files: int = 300, max_bytes: int = 2_000_000):
+                    max_files: int = 300, max_bytes: int = 2_000_000, excludes: list[Path] | None = None):
     root = root.resolve(strict=True)
     if not root.is_dir():
         raise ValueError("Repository must be a directory")
@@ -63,7 +63,8 @@ def scan_repository(root: Path, claims: list[CapabilityClaim], exclude: Path | N
             skipped.append(relative + ": symlink")
             continue
         resolved = path.resolve()
-        if not resolved.is_relative_to(root) or (exclude and resolved.is_relative_to(exclude.resolve())):
+        excluded = [*(excludes or []), *([exclude] if exclude else [])]
+        if not resolved.is_relative_to(root) or any(resolved.is_relative_to(p.resolve()) for p in excluded):
             continue
         if SECRET_FILE.search(path.name):
             skipped.append(relative + ": sensitive filename")

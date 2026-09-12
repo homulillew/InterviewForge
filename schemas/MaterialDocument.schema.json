@@ -1,0 +1,119 @@
+{
+  "$defs": {
+    "SourceBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "location": {
+          "minLength": 1,
+          "title": "Location",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "method": {
+          "default": "text",
+          "minLength": 1,
+          "title": "Method",
+          "type": "string"
+        }
+      },
+      "required": [
+        "location",
+        "text"
+      ],
+      "title": "SourceBlock",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "interview",
+        "answer"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "filename": {
+      "minLength": 1,
+      "title": "Filename",
+      "type": "string"
+    },
+    "source_file": {
+      "minLength": 1,
+      "title": "Source File",
+      "type": "string"
+    },
+    "source_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Source Hash",
+      "type": "string"
+    },
+    "imported_at": {
+      "minLength": 1,
+      "title": "Imported At",
+      "type": "string"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+    },
+    "company": {
+      "default": "",
+      "title": "Company",
+      "type": "string"
+    },
+    "role": {
+      "default": "",
+      "title": "Role",
+      "type": "string"
+    },
+    "blocks": {
+      "items": {
+        "$ref": "#/$defs/SourceBlock"
+      },
+      "title": "Blocks",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    },
+    "item_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Item Ids",
+      "type": "array"
+    },
+    "extraction_method": {
+      "default": "offline",
+      "title": "Extraction Method",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "filename",
+    "source_file",
+    "source_hash",
+    "imported_at"
+  ],
+  "title": "MaterialDocument",
+  "type": "object"
+}

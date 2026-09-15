@@ -1,0 +1,603 @@
+{
+  "document_kind": "authored_advanced_interview_preparation",
+  "project": "P01",
+  "question_scope": "resume_and_prior_spoken_answer_only",
+  "question_range": "Q41-Q72",
+  "chronology": "authored_branches_not_observed_sequence",
+  "runtime_agents_executed": false,
+  "human_mastery_assessed": false,
+  "previous_material_manifest": "P01_出题与材料依据.json",
+  "previous_material_manifest_sha256": "75c6745de00486253c6721fff5bcc637659d10139c377bb98aea74a6ce36f5c3",
+  "resume_sha256": "d0bca581b0b3a5707f923492787b328bb28e796d5022b58a68d42502876c0e67",
+  "question_bank_sha256": "7931629a6be818509689f1ae3a90738d9872aa47ac032383cdce117c0f270858",
+  "patterns": [
+    {
+      "id": "D01",
+      "question_bank_id": "Q-2f2891e0869b",
+      "original_question": "讲讲你做过的Agent相关项目,当时架构上为什么选择单Agent,或是多Agent方案?",
+      "adaptation": "从可行替代方案追问架构选择",
+      "applies_to": [
+        "Q41",
+        "Q42",
+        "Q50",
+        "Q52"
+      ],
+      "sources": [
+        {
+          "id": "S015",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S015_腾讯Agent应用开发一面.md",
+          "source_type": "- 类型：面经记录。作者以面经或面试经历形式发布；真实性未独立核验",
+          "sha256": "5124930f0601a1bc4c797b4e78c7e2b2b738e1a8a77476c2604984337ead344d"
+        }
+      ]
+    },
+    {
+      "id": "D02",
+      "question_bank_id": "Q-ca224c34ed2a",
+      "original_question": "稳定性和智能效果冲突,你怎么取舍?",
+      "adaptation": "把稳定性、质量与预算放到同一取舍中",
+      "applies_to": [
+        "Q44",
+        "Q47",
+        "Q53",
+        "Q54",
+        "Q55",
+        "Q56",
+        "Q60",
+        "Q69"
+      ],
+      "sources": [
+        {
+          "id": "S017",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S017_美团aiagent开发面经.md",
+          "source_type": "- 类型：面经记录。作者以面经或面试经历形式发布；真实性未独立核验",
+          "sha256": "3c5fd48194b37e13ab0e6234a123a2c1a0e4996fed0db3f79c3afb5571f3ad90"
+        }
+      ]
+    },
+    {
+      "id": "D03",
+      "question_bank_id": "Q-95e955a8d517",
+      "original_question": "当时为什么选择做决策编排、也就是决策树这种模式。",
+      "adaptation": "追问编排与决策边界为什么这样定义",
+      "applies_to": [
+        "Q42",
+        "Q45",
+        "Q46",
+        "Q47",
+        "Q49",
+        "Q51",
+        "Q52",
+        "Q57"
+      ],
+      "sources": [
+        {
+          "id": "S021",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S021_27秋招快手快star agent开发二面.md",
+          "source_type": "- 类型：面经记录。作者以面经或面试经历形式发布；真实性未独立核验",
+          "sha256": "48f98f3027009b82ad68b46a586512ceb592b47b3abbee2a24f36ba309c0aa8d"
+        }
+      ]
+    },
+    {
+      "id": "D04",
+      "question_bank_id": "Q-24171edf03cf",
+      "original_question": "你这个产品,怎么避免每一步出现重新规划,导致路径震荡?",
+      "adaptation": "检验动态规划是否造成反复变更和路径震荡",
+      "applies_to": [
+        "Q48"
+      ],
+      "sources": [
+        {
+          "id": "S079",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S079_腾讯 Agent二面凉经带答案.md",
+          "source_type": "- 类型：面试题讲解。面试题汇编或带答案讲解；不据此确认真实面试经历",
+          "sha256": "260eae738e0d4cae9f683696b0332cda51b0d3f6134ffde6068b3004036dd0c7"
+        }
+      ]
+    },
+    {
+      "id": "D05",
+      "question_bank_id": "Q-a16f220a0bfb",
+      "original_question": "为什么选ReAct而不是传统规则工作流,高确定性业务场景Agent自主性边界",
+      "adaptation": "追问自主性与确定性流程的适用边界",
+      "applies_to": [
+        "Q45",
+        "Q46",
+        "Q56",
+        "Q61"
+      ],
+      "sources": [
+        {
+          "id": "S012",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S012_阿里千问 AlAgent三轮.md",
+          "source_type": "- 类型：面经记录。正文包含面试场景及具体问题",
+          "sha256": "a22820a03f4a715e7ae83311cb71515eb96af82bd14fd1d33107a749c1f9a4e7"
+        }
+      ]
+    },
+    {
+      "id": "D06",
+      "question_bank_id": "Q-9d4e2cd335c9",
+      "original_question": "讲一下如何优化智能体之间的通信损耗,防止冗余信息导致决策效率下降?",
+      "adaptation": "从协调成本与信息冗余追问多 Agent 设计",
+      "applies_to": [
+        "Q50",
+        "Q51",
+        "Q62"
+      ],
+      "sources": [
+        {
+          "id": "S128",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S128_阿里国际 AI应用研发 一面面经.md",
+          "source_type": "- 类型：面经记录。作者以面经或面试经历形式发布；真实性未独立核验",
+          "sha256": "451163116b7b9ff6e82dad52f584ce398a10beed43d04fc03a7fbcee5254f42f"
+        }
+      ]
+    },
+    {
+      "id": "D07",
+      "question_bank_id": "Q-ea9e2acba497",
+      "original_question": "通用大模型和业务Agent的核心区别?",
+      "adaptation": "区分模型能力、系统能力与业务价值",
+      "applies_to": [
+        "Q61",
+        "Q62",
+        "Q63",
+        "Q64",
+        "Q66",
+        "Q71",
+        "Q72"
+      ],
+      "sources": [
+        {
+          "id": "S017",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S017_美团aiagent开发面经.md",
+          "source_type": "- 类型：面经记录。作者以面经或面试经历形式发布；真实性未独立核验",
+          "sha256": "3c5fd48194b37e13ab0e6234a123a2c1a0e4996fed0db3f79c3afb5571f3ad90"
+        }
+      ]
+    },
+    {
+      "id": "D08",
+      "question_bank_id": "Q-02c3a0b5a44f",
+      "original_question": "如果让你设计一个Agent应用,需要从哪些方面整体规划?",
+      "adaptation": "从整体方案、产品与部署条件考察规划",
+      "applies_to": [
+        "Q63",
+        "Q65",
+        "Q68",
+        "Q69",
+        "Q70",
+        "Q72"
+      ],
+      "sources": [
+        {
+          "id": "S005",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S005_美团AI Agent一面.md",
+          "source_type": "- 类型：面经记录。作者以面经或面试经历形式发布；真实性未独立核验",
+          "sha256": "94623786b6fc80e5ccc63a4ffcdf24df08e00a49866a7fe9b71e152f8921b565"
+        }
+      ]
+    },
+    {
+      "id": "D09",
+      "question_bank_id": "Q-c3572a6c0823",
+      "original_question": "Agent落地最大瓶颈是什么?",
+      "adaptation": "定位真正阻碍效果与落地的瓶颈",
+      "applies_to": [
+        "Q41",
+        "Q44",
+        "Q54",
+        "Q55",
+        "Q58",
+        "Q64",
+        "Q68",
+        "Q70"
+      ],
+      "sources": [
+        {
+          "id": "S017",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S017_美团aiagent开发面经.md",
+          "source_type": "- 类型：面经记录。作者以面经或面试经历形式发布；真实性未独立核验",
+          "sha256": "3c5fd48194b37e13ab0e6234a123a2c1a0e4996fed0db3f79c3afb5571f3ad90"
+        }
+      ]
+    },
+    {
+      "id": "D10",
+      "question_bank_id": "Q-bc599a03b51e",
+      "original_question": "系统上线后,整体迭代和优化策略?",
+      "adaptation": "追问迭代优先级、回退与演进依据",
+      "applies_to": [
+        "Q58",
+        "Q60",
+        "Q70",
+        "Q71"
+      ],
+      "sources": [
+        {
+          "id": "S041",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S041_某中厂agent开发面经.md",
+          "source_type": "- 类型：面经记录。作者以面经或面试经历形式发布；真实性未独立核验",
+          "sha256": "5fe7349605afb1d94d820d23590b296a204564489dfcf2589ac0b3a64f6d0e7d"
+        }
+      ]
+    },
+    {
+      "id": "D11",
+      "question_bank_id": "Q-8575a94805e0",
+      "original_question": "如何记录每轮实验的耗时、Token 消耗、结果和失败路线?",
+      "adaptation": "以实验记录和失败路线检验决策证据",
+      "applies_to": [
+        "Q43",
+        "Q59",
+        "Q66",
+        "Q67"
+      ],
+      "sources": [
+        {
+          "id": "S044",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S044_字节跳动27届秋招 火山方舟 Agent 一面面经.md",
+          "source_type": "- 类型：面经记录。作者以面经或面试经历形式发布；真实性未独立核验",
+          "sha256": "ccb74210a2b7f8acad2adfcdae61ac4ca089fd6ccf538b953c65ceca725d9371"
+        }
+      ]
+    },
+    {
+      "id": "D12",
+      "question_bank_id": "Q-b61d1b78e164",
+      "original_question": "什么场景下用「多 agent + 决策树」这套策略比较好,不限于你自己的项目,讲讲业界视角。",
+      "adaptation": "从项目内方案延伸到跨场景适用性",
+      "applies_to": [
+        "Q50",
+        "Q72"
+      ],
+      "sources": [
+        {
+          "id": "S021",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S021_27秋招快手快star agent开发二面.md",
+          "source_type": "- 类型：面经记录。作者以面经或面试经历形式发布；真实性未独立核验",
+          "sha256": "48f98f3027009b82ad68b46a586512ceb592b47b3abbee2a24f36ba309c0aa8d"
+        }
+      ]
+    },
+    {
+      "id": "D13",
+      "question_bank_id": "Q-2c53710bd975",
+      "original_question": "实际业务中怎么做上下文压缩,如何兼顾token开销与模型决策效果",
+      "adaptation": "比较上下文成本与决策信息保留",
+      "applies_to": [
+        "Q49",
+        "Q57",
+        "Q62"
+      ],
+      "sources": [
+        {
+          "id": "S029",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S029_联想AI Agent开发面经.md",
+          "source_type": "- 类型：面经记录。作者以面经或面试经历形式发布；真实性未独立核验",
+          "sha256": "dcb4745233d84716e800d97e63a66988f2a4bc44ada88f22d1758e3e02ad503e"
+        }
+      ]
+    },
+    {
+      "id": "D14",
+      "question_bank_id": "Q-0cb59d7307d2",
+      "original_question": "如何设计benchmark,保证不同方案是在相同环境下比较?",
+      "adaptation": "检验方案比较与收益归因的可比性",
+      "applies_to": [
+        "Q43",
+        "Q59",
+        "Q65",
+        "Q67"
+      ],
+      "sources": [
+        {
+          "id": "S044",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S044_字节跳动27届秋招 火山方舟 Agent 一面面经.md",
+          "source_type": "- 类型：面经记录。作者以面经或面试经历形式发布；真实性未独立核验",
+          "sha256": "ccb74210a2b7f8acad2adfcdae61ac4ca089fd6ccf538b953c65ceca725d9371"
+        }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q41",
+      "question": "你怎么判断真正该解决的是研究状态管理，而不是模型不够强？",
+      "basis": "C01、C04；问法模式 D01、D09。要求证明问题定位，而不是复述设计。",
+      "pattern_ids": [
+        "D01",
+        "D09"
+      ]
+    },
+    {
+      "id": "Q42",
+      "question": "你有哪些真正可行的备选方案，为什么最后选了现在这套？",
+      "basis": "C01、C03、C07；接 Q41；D01、D03。",
+      "pattern_ids": [
+        "D01",
+        "D03"
+      ]
+    },
+    {
+      "id": "Q43",
+      "question": "什么结果会让你承认这套架构选重了？",
+      "basis": "C01、C07、C08、C10；接 Q42 的复杂度代价；D11、D14。",
+      "pattern_ids": [
+        "D11",
+        "D14"
+      ]
+    },
+    {
+      "id": "Q44",
+      "question": "假设预算突然减少四成，你先砍什么？",
+      "basis": "C03、C07、C10；接 Q42–Q43；D02、D09。四成是预算压力题设。",
+      "pattern_ids": [
+        "D02",
+        "D09"
+      ]
+    },
+    {
+      "id": "Q45",
+      "question": "面对当前 State，你怎样决定下一步搜索、深读还是综合？",
+      "basis": "C01、C05；D03、D05。",
+      "pattern_ids": [
+        "D03",
+        "D05"
+      ]
+    },
+    {
+      "id": "Q46",
+      "question": "已有 Gap 都很具体，为什么还要花预算搜索新路线和反例？",
+      "basis": "C01、C06、C07；接 Q45；D03、D05。",
+      "pattern_ids": [
+        "D03",
+        "D05"
+      ]
+    },
+    {
+      "id": "Q47",
+      "question": "什么时候应该停止继续找证据，而不是把“不确定”无限往后推？",
+      "basis": "C07；接 Q45–Q46；D02、D03。",
+      "pattern_ids": [
+        "D02",
+        "D03"
+      ]
+    },
+    {
+      "id": "Q48",
+      "question": "你每轮都重新规划，会不会方向来回摆动？",
+      "basis": "C01、C03、C04；接 Q45 的动态选择；D04。D04 来自题目讲解材料，来源类型见附录。",
+      "pattern_ids": [
+        "D04",
+        "D04"
+      ]
+    },
+    {
+      "id": "Q49",
+      "question": "状态对象拆到什么粒度才合适，为什么不把所有句子都做成节点？",
+      "basis": "C01、C05、C06；D03、D13。",
+      "pattern_ids": [
+        "D03",
+        "D13"
+      ]
+    },
+    {
+      "id": "Q50",
+      "question": "你为什么把最终综合权交给一个主研究者，而不是让多个 Agent 辩论投票？",
+      "basis": "C03、C06；D01、D06、D12。",
+      "pattern_ids": [
+        "D01",
+        "D06",
+        "D12"
+      ]
+    },
+    {
+      "id": "Q51",
+      "question": "遇到相互矛盾的分析，你为什么不先全部保留，让最后写报告时再解决？",
+      "basis": "C01、C06；接 Q50；D03、D06。",
+      "pattern_ids": [
+        "D03",
+        "D06"
+      ]
+    },
+    {
+      "id": "Q52",
+      "question": "你为什么需要自定义 Harness，直接用现有框架不行吗？",
+      "basis": "项目名称、C01–C07；D01、D03。问题不预设项目使用或拒绝过某个具体框架。",
+      "pattern_ids": [
+        "D01",
+        "D03"
+      ]
+    },
+    {
+      "id": "Q53",
+      "question": "Gate 放过错误和错误地拒绝好结果，你更不能接受哪一个？",
+      "basis": "C05、C07；D02。",
+      "pattern_ids": [
+        "D02"
+      ]
+    },
+    {
+      "id": "Q54",
+      "question": "你如何决定一单位预算给 Reader，还是给 Reviewer？",
+      "basis": "C03、C05、C07、C10；接 Q53；D02、D09。",
+      "pattern_ids": [
+        "D02",
+        "D09"
+      ]
+    },
+    {
+      "id": "Q55",
+      "question": "如果可以选不同成本的模型，你怎样分配，而不是全部用最强模型？",
+      "basis": "C03、C07、C10；接 Q54；D02、D09。模型配置是设计题，不声称已有多模型路由实验。",
+      "pattern_ids": [
+        "D02",
+        "D09"
+      ]
+    },
+    {
+      "id": "Q56",
+      "question": "什么时候应该让人介入，而不是继续让 Agent 自纠错？",
+      "basis": "C07、C09；接 Q53–Q55；D02、D05。",
+      "pattern_ids": [
+        "D02",
+        "D05"
+      ]
+    },
+    {
+      "id": "Q57",
+      "question": "研究结果通过验收，就一定值得写入 Wiki 吗？",
+      "basis": "C07、C08；D03、D13。",
+      "pattern_ids": [
+        "D03",
+        "D13"
+      ]
+    },
+    {
+      "id": "Q58",
+      "question": "遇到同类错误，你怎么判断该改 Prompt、改知识库，还是做训练？",
+      "basis": "C08、C09；接 Q57 的知识用途；D09、D10。",
+      "pattern_ids": [
+        "D09",
+        "D10"
+      ]
+    },
+    {
+      "id": "Q59",
+      "question": "加了一条 Error-Book 规则后结果变好了，你凭什么认为是规则起作用？",
+      "basis": "C09、C10；接 Q58 的修复选择；D11、D14。",
+      "pattern_ids": [
+        "D11",
+        "D14"
+      ]
+    },
+    {
+      "id": "Q60",
+      "question": "一条规则局部有效但全局有害，你如何决定保留、降级或删除？",
+      "basis": "C09；接 Q59；D02、D10。",
+      "pattern_ids": [
+        "D02",
+        "D10"
+      ]
+    },
+    {
+      "id": "Q61",
+      "question": "宏观上，你怎么区分 Agent、工作流和 Harness？",
+      "basis": "项目定位、C01–C07；D05、D07。",
+      "pattern_ids": [
+        "D05",
+        "D07"
+      ]
+    },
+    {
+      "id": "Q62",
+      "question": "长程任务的根本难点是什么，为什么不只是上下文窗口大小？",
+      "basis": "C01、C04、C06；D06、D07、D13。",
+      "pattern_ids": [
+        "D06",
+        "D07",
+        "D13"
+      ]
+    },
+    {
+      "id": "Q63",
+      "question": "从用户角度看，你到底是在交付一份报告，还是在帮助做一个决策？",
+      "basis": "项目名称、C07、C08；D07、D08。",
+      "pattern_ids": [
+        "D07",
+        "D08"
+      ]
+    },
+    {
+      "id": "Q64",
+      "question": "即使你做得更可靠，用户为什么不用通用模型直接调研？",
+      "basis": "C01、C04、C08、C10；接 Q63；D07、D09。",
+      "pattern_ids": [
+        "D07",
+        "D09"
+      ]
+    },
+    {
+      "id": "Q65",
+      "question": "开放研究没有唯一标准答案，你如何定义“做得好”？",
+      "basis": "C05–C07；接 Q63；D08、D14。",
+      "pattern_ids": [
+        "D08",
+        "D14"
+      ]
+    },
+    {
+      "id": "Q66",
+      "question": "你的耗时和 Token 指标，为什么不直接等于用户价值？",
+      "basis": "C10；接 Q63–Q65；D07、D11。",
+      "pattern_ids": [
+        "D07",
+        "D11"
+      ]
+    },
+    {
+      "id": "Q67",
+      "question": "组件彼此依赖时，单模块消融还能说明什么？",
+      "basis": "C07–C10；接第一轮收益归因和 Q59；D11、D14。",
+      "pattern_ids": [
+        "D11",
+        "D14"
+      ]
+    },
+    {
+      "id": "Q68",
+      "question": "从个人研究工具走向团队使用，第一批必须改变什么？",
+      "basis": "C02、C04、C08；D08、D09。团队化是扩展场景。",
+      "pattern_ids": [
+        "D08",
+        "D09"
+      ]
+    },
+    {
+      "id": "Q69",
+      "question": "开放式研究结果不可预测，你能够承诺怎样的服务质量？",
+      "basis": "C04、C07、C10；接 Q68；D02、D08。",
+      "pattern_ids": [
+        "D02",
+        "D08"
+      ]
+    },
+    {
+      "id": "Q70",
+      "question": "如果只有一个月继续迭代，你怎样排优先级？",
+      "basis": "C01–C10；接 Q64、Q68；D08、D09、D10。一个月是规划题设。",
+      "pattern_ids": [
+        "D08",
+        "D09",
+        "D10"
+      ]
+    },
+    {
+      "id": "Q71",
+      "question": "模型持续变强，你做的这些工程会不会很快失去价值？",
+      "basis": "C01、C05、C07、C08；D07、D10。讨论条件变化，不预测具体产品。",
+      "pattern_ids": [
+        "D07",
+        "D10"
+      ]
+    },
+    {
+      "id": "Q72",
+      "question": "哪些经验能迁移到其他 Agent，哪些只适用于学术调研？",
+      "basis": "C01–C09 的抽象归纳；D07、D08、D12。",
+      "pattern_ids": [
+        "D07",
+        "D08",
+        "D12"
+      ]
+    }
+  ],
+  "source_document_count": 10,
+  "source_document_types": {
+    "interview_record": 9,
+    "question_explanation": 1
+  }
+}

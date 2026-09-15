@@ -20,3 +20,9 @@ sessions/
 raw-corpus/
 corpus-data/
 private-materials/
+
+# Local interview inputs and candidate project repositories.
+/仓库/*
+!/仓库/interview-materials/
+/仓库/interview-materials/*
+!/仓库/interview-materials/project-deep-dives/

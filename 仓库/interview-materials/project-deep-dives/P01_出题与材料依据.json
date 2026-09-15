@@ -1,0 +1,493 @@
+{
+  "document_kind": "authored_interview_preparation",
+  "project": "P01",
+  "question_scope": "resume_and_prior_spoken_answer_only",
+  "not_runtime_isolation_claim": true,
+  "chronology": "authored_branches_not_observed_interview_sequence",
+  "corpus_ingested": false,
+  "human_mastery_assessed": false,
+  "resume_sha256": "d0bca581b0b3a5707f923492787b328bb28e796d5022b58a68d42502876c0e67",
+  "corpus_question_bank_sha256": "7931629a6be818509689f1ae3a90738d9872aa47ac032383cdce117c0f270858",
+  "corpus_patterns": [
+    {
+      "id": "M01",
+      "question_bank_id": "Q-2f2891e0869b",
+      "original_question": "讲讲你做过的Agent相关项目,当时架构上为什么选择单Agent,或是多Agent方案?",
+      "operator": "架构选型与替代方案",
+      "applies_to": "Q01、Q09",
+      "sources": [
+        {
+          "id": "S015",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S015_腾讯Agent应用开发一面.md",
+          "sha256": "5124930f0601a1bc4c797b4e78c7e2b2b738e1a8a77476c2604984337ead344d"
+        }
+      ]
+    },
+    {
+      "id": "M02",
+      "question_bank_id": "Q-2cbc77878300",
+      "original_question": "请具体介绍 Agent 项目,哪一块最复杂、最有挑战?",
+      "operator": "项目价值、最难决策与职责核验",
+      "applies_to": "Q01、Q03、Q40",
+      "sources": [
+        {
+          "id": "S122",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S122_淘天ai应用开发一面面经.md",
+          "sha256": "259183371d3258391df0ca811294210cd582c1c1b135622e95ac13691ff8bcfe"
+        }
+      ]
+    },
+    {
+      "id": "M03",
+      "question_bank_id": "Q-2923e8042623",
+      "original_question": "随着模型上下文扩展到1M+,你认为外挂的向量记忆库未来会被长上下文完全取代吗?",
+      "operator": "长上下文与外部认知存储的取舍",
+      "applies_to": "Q02、Q04、Q25、Q26",
+      "sources": [
+        {
+          "id": "S128",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S128_阿里国际 AI应用研发 一面面经.md",
+          "sha256": "451163116b7b9ff6e82dad52f584ce398a10beed43d04fc03a7fbcee5254f42f"
+        }
+      ]
+    },
+    {
+      "id": "M04",
+      "question_bank_id": "Q-0cc73aae36e9",
+      "original_question": "多Agent并行执行时,如何管理不同任务的执行状态?",
+      "operator": "状态语义、并行结果与共享修改",
+      "applies_to": "Q05–Q06、Q09–Q11",
+      "sources": [
+        {
+          "id": "S005",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S005_美团AI Agent一面.md",
+          "sha256": "94623786b6fc80e5ccc63a4ffcdf24df08e00a49866a7fe9b71e152f8921b565"
+        }
+      ]
+    },
+    {
+      "id": "M05",
+      "question_bank_id": "Q-6bd188427dd7",
+      "original_question": "从数据、检索、生成这三个方面来看,分别可以怎么做来降低项目的幻觉问题?",
+      "operator": "沿数据、检索、生成定位错误与证据失真",
+      "applies_to": "Q07、Q17–Q23、Q27、Q37–Q38",
+      "sources": [
+        {
+          "id": "S084",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S084_淘天ao研发岗一面.md",
+          "sha256": "1fcd5c8afc8dd9e394543c6d53647fe67c80d63e15544e6e7de7d39b46330163"
+        }
+      ]
+    },
+    {
+      "id": "M06",
+      "question_bank_id": "Q-95fd3e7cf65d",
+      "original_question": "上下文窗口怎么设计,如何降低token,怎么评测设计的质量?",
+      "operator": "上下文成本、Token 与质量联合评估",
+      "applies_to": "Q08、Q20、Q25、Q28、Q31、Q33、Q35",
+      "sources": [
+        {
+          "id": "S105",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S105_阿里国际一面凉经（大模型应用）.md",
+          "sha256": "551ec8b84d9fcd14cbf5492948af16c37d84cd3183caf5b790b811a19e20de68"
+        }
+      ]
+    },
+    {
+      "id": "M07",
+      "question_bank_id": "Q-1c6d05abc313",
+      "original_question": "那你实际项目中,这个幂等性是怎么设计的呢?",
+      "operator": "幂等、重复请求与副作用边界",
+      "applies_to": "Q11、Q14",
+      "sources": [
+        {
+          "id": "S148",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S148_找大厂暑期实习结束啦.md",
+          "sha256": "99bcd7b58e9f44a340a8b5f0847709a2a5d521619e2db5e8cf67f45057fcba36"
+        }
+      ]
+    },
+    {
+      "id": "M08",
+      "question_bank_id": "Q-a8190acc6273",
+      "original_question": "Agent 的性能瓶颈通常出现在哪些环节?",
+      "operator": "性能瓶颈定位与收益归因",
+      "applies_to": "Q12、Q20、Q35、Q40",
+      "sources": [
+        {
+          "id": "S045",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S045_安克创新 AIAgent 两轮技术面.md",
+          "sha256": "238e62ceca503e711b2495639030af1c655ed63b3a5d9a5936d014204f8cb529"
+        }
+      ]
+    },
+    {
+      "id": "M09",
+      "question_bank_id": "Q-3464ad78729d",
+      "original_question": "除了故障后的继续执行,Checkpoint 还有哪些适用场景?",
+      "operator": "检查点与恢复语义扩展",
+      "applies_to": "Q13、Q15–Q16",
+      "sources": [
+        {
+          "id": "S406",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S406_阿里云AI应用研发一面（新鲜出炉.md",
+          "sha256": "fb999c4b9c55a3bc664f20303f71e37cb6df6cdbb9a73029ef1588b9f0faf860"
+        }
+      ]
+    },
+    {
+      "id": "M10",
+      "question_bank_id": "Q-9b31896078aa",
+      "original_question": "Prompt 怎么约束模型引用知识库,减少幻觉?",
+      "operator": "引用约束能保证什么",
+      "applies_to": "Q17",
+      "sources": [
+        {
+          "id": "S045",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S045_安克创新 AIAgent 两轮技术面.md",
+          "sha256": "238e62ceca503e711b2495639030af1c655ed63b3a5d9a5936d014204f8cb529"
+        }
+      ]
+    },
+    {
+      "id": "M11",
+      "question_bank_id": "Q-2de0912e8135",
+      "original_question": "Agent Loop 在什么条件下继续执行,又在什么条件下结束?",
+      "operator": "继续、终止与反馈循环",
+      "applies_to": "Q21–Q22、Q24、Q37",
+      "sources": [
+        {
+          "id": "S044",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S044_字节跳动27届秋招 火山方舟 Agent 一面面经.md",
+          "sha256": "ccb74210a2b7f8acad2adfcdae61ac4ca089fd6ccf538b953c65ceca725d9371"
+        }
+      ]
+    },
+    {
+      "id": "M12",
+      "question_bank_id": "Q-c365cd12d980",
+      "original_question": "bad case 优化具体怎么做?",
+      "operator": "失败归因、修复和回归",
+      "applies_to": "Q24、Q29–Q32",
+      "sources": [
+        {
+          "id": "S152",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S152_文心一言面经.md",
+          "sha256": "3c8018c26885a49ebbeec4f2596041a018be0223a0e7e08c25e88bbc75e28fc0"
+        }
+      ]
+    },
+    {
+      "id": "M13",
+      "question_bank_id": "Q-0cb59d7307d2",
+      "original_question": "如何设计benchmark,保证不同方案是在相同环境下比较?",
+      "operator": "同条件对照、消融与统计分母",
+      "applies_to": "Q32–Q34、Q36、Q39",
+      "sources": [
+        {
+          "id": "S044",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S044_字节跳动27届秋招 火山方舟 Agent 一面面经.md",
+          "sha256": "ccb74210a2b7f8acad2adfcdae61ac4ca089fd6ccf538b953c65ceca725d9371"
+        }
+      ]
+    },
+    {
+      "id": "M14",
+      "question_bank_id": "Q-0a9ab1a6ceb5",
+      "original_question": "如果让你给一个Agent项目设计评测方案,你会怎么设计?",
+      "operator": "Agent 评测方案与质量覆盖",
+      "applies_to": "Q36、Q39",
+      "sources": [
+        {
+          "id": "S084",
+          "path": "仓库/interview-materials/experiences/Agent面试问题总结/01_逐帖面经/S084_淘天ao研发岗一面.md",
+          "sha256": "1fcd5c8afc8dd9e394543c6d53647fe67c80d63e15544e6e7de7d39b46330163"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "仓库/projects/E2E-liter-search/.claude/skills/literature-research/runtime/src/my_search_harness/domain/model.py",
+      "start_line": 143,
+      "sha256": "37a0944e40dbc9d8865ac4efcf1c0b0f22de898a4af01766383a6b4be56e406e",
+      "supports": "论文级判断与原文定位；PaperAnalysis、LiteratureSource 和 ResearchRun"
+    },
+    {
+      "path": "仓库/projects/E2E-liter-search/.claude/skills/literature-research/runtime/src/my_search_harness/runtime/persistence.py",
+      "start_line": 90,
+      "sha256": "847a753c11297ae5eefc9ca2e5d7d6e6ccd62e9764c16fe19d029a7ac2f4a544",
+      "supports": "revision 检查；第 102 行起为临时文件、fsync 和 replace"
+    },
+    {
+      "path": "仓库/projects/E2E-liter-search/.claude/skills/literature-research/runtime/src/my_search_harness/runtime/commands.py",
+      "start_line": 1469,
+      "sha256": "05cefbff7eefdc4d7efc069516d742441163b6636dcbe70984f412dabf73c951",
+      "supports": "状态 revision 递增，保存之后追加审计"
+    },
+    {
+      "path": "仓库/projects/E2E-liter-search/.claude/skills/literature-research/runtime/src/my_search_harness/runtime/context.py",
+      "start_line": 51,
+      "sha256": "861701ab85d1c4c1b31684f80f344324c09d5de27795f01a8e1daffc3bf0ef50",
+      "supports": "角色上下文限制、分页与带 revision 的 continuation"
+    },
+    {
+      "path": "仓库/projects/E2E-liter-search/.claude/skills/literature-research/runtime/src/my_search_harness/domain/paper_identity.py",
+      "start_line": 39,
+      "sha256": "80c7485aa4ed56baac39ac94477311ecf08d39cc4055f13fd43a9a1daac8ea84",
+      "supports": "以 DOI、arXiv、URL 构造论文身份键；身份键不等于完整操作幂等"
+    },
+    {
+      "path": "仓库/projects/E2E-liter-search/.claude/skills/literature-research/runtime/src/my_search_harness/runtime/certified_delivery.py",
+      "start_line": 246,
+      "sha256": "2a41e9a4015c4affbd5b7ae5bd4fac051628521a85a4083575ff8dafc5810a93",
+      "supports": "交付修复反馈；文稿变更后清除下游验收"
+    },
+    {
+      "path": "仓库/projects/E2E-liter-search/.claude/skills/literature-research/runtime/src/my_search_harness/runtime/wiki.py",
+      "start_line": 233,
+      "sha256": "7637fbedf295436028aa4a3387e773cc7438b13da5c9afb5a3cefc2dd81b4424",
+      "supports": "Wiki 输入投影、构建与发布接口"
+    },
+    {
+      "path": "仓库/projects/E2E-liter-search/.claude/skills/literature-research/references/RESEARCH_PROTOCOL.md",
+      "start_line": 19,
+      "sha256": "08b854884cd5fa7ebf9d55d424d0729ef0184d763e74e1bf5cc4be9f6ae07056",
+      "supports": "自适应研究循环、局部 Reader 与串行全局综合、反例探索"
+    },
+    {
+      "path": "仓库/projects/E2E-liter-search/.claude/skills/literature-research/references/REPORT_REVIEW_GUIDE.md",
+      "start_line": 1,
+      "sha256": "a12f305cd507abd31f43239ac8585e83ef3061c65050bd33cfe7b23764dbe82f",
+      "supports": "Fresh Reader 的任务和与 Integrity 的边界"
+    },
+    {
+      "path": "仓库/projects/E2E-liter-search/.claude/skills/literature-research/references/RESEARCH_INTEGRITY_GUIDE.md",
+      "start_line": 1,
+      "sha256": "5fb0863f8719c6031c169c234d8de5ff4e14b268534454fddf763162a704a017",
+      "supports": "对主张强度、证据条件和比较关系的评审要求"
+    },
+    {
+      "path": "仓库/projects/E2E-liter-search/.claude/skills/literature-research/references/WIKI_BUILD_GUIDE.md",
+      "start_line": 1,
+      "sha256": "aadfb87c37edfa0d7daac321a16343291525728d0c983a4d41423182d7d53539",
+      "supports": "accepted State 到 Wiki 的语义边界；Report 与 Wiki 的平行投影"
+    },
+    {
+      "path": "仓库/projects/E2E-liter-search/.claude/skills/literature-research/references/RUNTIME_API.md",
+      "start_line": 390,
+      "sha256": "965e6200a01813b1c6d610e0c63f58bf5bec1069015edc6a3d631756f9c05b1b",
+      "supports": "构建反馈、文稿版本与下游认证失效的接口说明"
+    },
+    {
+      "path": "仓库/projects/E2E-liter-search/bad_cases/bad_case_2026-08-16_agent-search-rl-credit-assignment/FAIL_ANALYSIS.md",
+      "start_line": 1,
+      "sha256": "be8a9dd825b96737de458e5c35446f523d41571a6d8f7f17d874f5af5f814f1c",
+      "supports": "门禁通过后仍存在报告质量问题的历史复盘；建议不等于验证完成"
+    }
+  ],
+  "repository_commit": "82e3b58e3d6fee9e90c2ad39da369ae1c62b8253",
+  "questions": [
+    {
+      "id": "Q01",
+      "question": "用两分钟讲清楚这个项目解决了什么问题。",
+      "basis": "项目名称、C01、C07、C08；面经模式 M01、M02。考察能否把组件名翻译成具体问题。"
+    },
+    {
+      "id": "Q02",
+      "question": "保存聊天记录并定期总结，为什么不足以支撑你的场景？",
+      "basis": "C01；接 Q01 的“状态”；M03。替代方案是面试官提出的假设。"
+    },
+    {
+      "id": "Q03",
+      "question": "这些能力里，你的核心设计贡献是什么？",
+      "basis": "实习项目的职责核验；接 Q01 的设计陈述；M02。简历未给出团队人数或代码占比，不为问题添加这些前提。"
+    },
+    {
+      "id": "Q04",
+      "question": "模型上下文足够长、能力足够强时，这套 Harness 还有价值吗？",
+      "basis": "C01、C04、C07；接 Q02；M03。讨论能力提升的假设，不依赖某款模型的规格。"
+    },
+    {
+      "id": "Q05",
+      "question": "请用一个具体调研问题解释这些状态对象如何协同。",
+      "basis": "C01；M04。下面的检索预算例子是讲解场景，不是额外声称完成的一项实验。"
+    },
+    {
+      "id": "Q06",
+      "question": "为什么要区分 OpenProblem 和 Gap？都表示不知道，不是重复吗？",
+      "basis": "C01；直接追问 Q05 已说出的对象区别；M04 的状态语义模式。"
+    },
+    {
+      "id": "Q07",
+      "question": "前面保存的论文判断被新证据推翻，如何避免旧错误继续传播？",
+      "basis": "C01、C05、C06；接 Q05 的“Finding 依赖论文结果”；M05。"
+    },
+    {
+      "id": "Q08",
+      "question": "结构化状态也会越积越大，你怎么控制每轮上下文？",
+      "basis": "C01、C04、C10；接 Q05 的对象增长；M06。"
+    },
+    {
+      "id": "Q09",
+      "question": "为什么并行深读，却把全局综合串行化？",
+      "basis": "C03；M01、M04。"
+    },
+    {
+      "id": "Q10",
+      "question": "两个 Reader 都基于 revision 10 工作，第二个在状态更新后才回来，怎么处理？",
+      "basis": "C02、C03；接 Q09 的结果合入；M04。版本号是面试假设。"
+    },
+    {
+      "id": "Q11",
+      "question": "revision 检查加原子提交，就足以保证多进程并发安全吗？",
+      "basis": "C02；接 Q10 的版本检查；M04、M07。多进程是新增假设，不预设项目已经支持它。"
+    },
+    {
+      "id": "Q12",
+      "question": "主研究者成为串行瓶颈怎么办？",
+      "basis": "C03；接 Q09 的串行取舍；M08。"
+    },
+    {
+      "id": "Q13",
+      "question": "换一个 Session 后，具体从什么位置恢复？",
+      "basis": "C04；M09。"
+    },
+    {
+      "id": "Q14",
+      "question": "工具超时重试，怎样避免同一篇论文或同一个结果被重复写入？",
+      "basis": "C02、C04；接 Q13 的重做；M07。"
+    },
+    {
+      "id": "Q15",
+      "question": "如果进程在提交过程中崩溃，哪些东西可能丢失？",
+      "basis": "C02、C04；接 Q13 的“已提交”；M09。"
+    },
+    {
+      "id": "Q16",
+      "question": "保存了状态，但升级了模型或状态结构，恢复还可靠吗？",
+      "basis": "C04；接 Q13 的恢复依据；M09。升级是设计假设。"
+    },
+    {
+      "id": "Q17",
+      "question": "你绑定了 Primary Source，怎么判断它真的支持这条结论？",
+      "basis": "C05、C06；M05、M10。"
+    },
+    {
+      "id": "Q18",
+      "question": "两篇论文结论相反，你按引用数投票，还是让模型选一个？",
+      "basis": "C06；接 Q17 的支持关系；M05。冲突论文是假设。"
+    },
+    {
+      "id": "Q19",
+      "question": "关键论文拿不到全文，只有摘要，研究是否必须停止？",
+      "basis": "C05、C07；接 Q17 的原文核验；M05。"
+    },
+    {
+      "id": "Q20",
+      "question": "逐条核验成本太高，你怎样决定检查哪些结论？",
+      "basis": "C05、C07、C10；接 Q17 的反向核查；M06、M08。"
+    },
+    {
+      "id": "Q21",
+      "question": "你怎么判断研究已经充分，而不是刚好搜不到新东西？",
+      "basis": "C07；M11。"
+    },
+    {
+      "id": "Q22",
+      "question": "Fresh Reader 和 Integrity 为什么不能合成一次评审？",
+      "basis": "C07；接 Q21 的独立验收；M05、M11。"
+    },
+    {
+      "id": "Q23",
+      "question": "同一种模型既写又审，会不会大家一起自信地犯错？",
+      "basis": "C07；接 Q22 的评审独立性；M05。模型共享是假设。"
+    },
+    {
+      "id": "Q24",
+      "question": "Gate 失败后怎么修？改完一段，之前的通过结果还能用吗？",
+      "basis": "C07；接 Q22 的修复分工；M11、M12。"
+    },
+    {
+      "id": "Q25",
+      "question": "你的 Wiki 相比把论文切块做 RAG，额外提供了什么？",
+      "basis": "C08；M03、M06。"
+    },
+    {
+      "id": "Q26",
+      "question": "为什么从 accepted State 构建 Wiki，而不是直接总结最终报告？",
+      "basis": "C08；接 Q25 的知识组织；M03。"
+    },
+    {
+      "id": "Q27",
+      "question": "Wiki 中的旧结论被新论文推翻，怎样避免越复用越错？",
+      "basis": "C06、C08；接 Q25 的跨 Run 使用；M05。"
+    },
+    {
+      "id": "Q28",
+      "question": "压缩成 Wiki 时，怎样避免把关键限制条件压没了？",
+      "basis": "C06、C08、C10；接 Q25 的认知压缩；M06。"
+    },
+    {
+      "id": "Q29",
+      "question": "Error-Book 与普通错误日志有什么区别，如何影响下一次构建？",
+      "basis": "C09；M12。"
+    },
+    {
+      "id": "Q30",
+      "question": "举一个具体失败，说明为什么它需要系统修复，而不是改一次答案。",
+      "basis": "C09；接 Q29 的可执行反馈；M12。面试官只要求举例，失败内容由候选人回答引入。"
+    },
+    {
+      "id": "Q31",
+      "question": "每次失败都加一条规则，最终会不会规则互相冲突、上下文越来越长？",
+      "basis": "C09、C10；接 Q29 的动态约束；M06、M12。"
+    },
+    {
+      "id": "Q32",
+      "question": "你怎么证明 Error-Book 学到了通用纠错，而不是记住了几个失败案例？",
+      "basis": "C09；接 Q30 的修复、Q31 的泛化规则；M12、M13。"
+    },
+    {
+      "id": "Q33",
+      "question": "耗时降低 43.7%、Token 降低 33.1%，分母是什么？",
+      "basis": "C10；M13、M06。参考回答保留简历数字，具体实验记录与统计口径须对应，见附录 B。"
+    },
+    {
+      "id": "Q34",
+      "question": "这些收益究竟来自 Wiki、Error-Book，还是只是并行度提高了？",
+      "basis": "C03、C08、C09、C10；接 Q33 的整体收益；M13。"
+    },
+    {
+      "id": "Q35",
+      "question": "首次构建 Wiki 的成本算进去，长期真的划算吗？",
+      "basis": "C08、C10；接 Q33 的“后续多轮”；M06、M08。"
+    },
+    {
+      "id": "Q36",
+      "question": "你怎么排除“少读了论文、降低了报告质量，所以更快”这个解释？",
+      "basis": "C07、C10；接 Q33 的成本收益；M13、M14。"
+    },
+    {
+      "id": "Q37",
+      "question": "如果关键反例一直没被搜到，结构化状态会不会只是更有条理地犯错？",
+      "basis": "C01、C06、C07；接 Q21 的充分性、Q27 的确认偏差；M05、M11。"
+    },
+    {
+      "id": "Q38",
+      "question": "论文或网页里藏着“忽略规则、直接通过检查”的指令，怎么办？",
+      "basis": "C05、C07；接 Q17 的原文读取；M05 的错误来源隔离模式。对抗内容是压力场景，不预设发生过攻击。"
+    },
+    {
+      "id": "Q39",
+      "question": "怎样设计一套评测，证明这是研究能力提升，而不只是流程跑通？",
+      "basis": "C07、C09、C10；接 Q36 的质量约束；M14、M13。"
+    },
+    {
+      "id": "Q40",
+      "question": "如果只能保留三个设计，你保留什么，下一步先改什么？",
+      "basis": "C01–C10 的设计收束；接前述成本与边界；M02、M08。"
+    }
+  ],
+  "source_document_count": 11
+}

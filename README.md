@@ -4,6 +4,10 @@
 
 当前 **v0.3.1 / Session Schema 2.0** 提供本地面经编译库、双 Agent 对抗面试、自然口述回答、独立来源审计、知识学习卡和真人复测。可以随时导入图片和文档；每个会话固定创建时的语料版本，新导入内容用于新会话。
 
+## 项目面试准备文档
+
+[四个项目的深挖问答与复习索引](仓库/interview-materials/project-deep-dives/README.md) 共 288 道主问题，覆盖实现细节、决策逻辑、宏观视角和穿插八股，附候选人口述回答与追问。原始简历、面经附件及克隆的项目源码保存在本地，文档中的材料溯源链接需要对应本地文件。
+
 ## 运行示例
 
 Python 3.11+，Linux/macOS；默认不需要 API Key。
@@ -13,7 +17,7 @@ python -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[dev,documents]'
 
-# 仓库内只有自制语料，真实面经保存在自己的本地目录。
+# 示例使用自制语料，真实面经保存在自己的本地目录。
 interview-forge corpus ingest examples/corpus/synthetic.json \
   --db ~/.interviewforge/corpus.sqlite3
 interview-forge corpus stats

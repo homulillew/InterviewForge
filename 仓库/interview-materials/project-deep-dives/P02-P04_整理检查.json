@@ -1,0 +1,79 @@
+{
+  "status": "passed",
+  "scope": "document_integrity_and_worked_examples_not_project_runtime_tests",
+  "new_questions": 216,
+  "fundamental_questions": 71,
+  "projects": [
+    {
+      "project": "P02",
+      "questions": 72,
+      "fundamentals": 19,
+      "files": [
+        {
+          "path": "P02_SearchAgent后训练_面试拷打与回答.md",
+          "bytes": 44596,
+          "sha256": "201989e06e2a6eb56956640636f58e39cfd287623f1bcb3c832da1944230ea66"
+        },
+        {
+          "path": "P02_SearchAgent后训练_决策逻辑与宏观视角.md",
+          "bytes": 33448,
+          "sha256": "9c2e574333a07cdb09d18bd4174cddaed0bf9391e1234fb1edf7266140752bcc"
+        }
+      ]
+    },
+    {
+      "project": "P03",
+      "questions": 72,
+      "fundamentals": 23,
+      "files": [
+        {
+          "path": "P03_医疗Agent_面试拷打与回答.md",
+          "bytes": 41063,
+          "sha256": "a34cafdf87e58f4ab8d3ca958b848d682b4a4f99d7e13ab1277aa2b0a3a1d4e5"
+        },
+        {
+          "path": "P03_医疗Agent_决策逻辑与宏观视角.md",
+          "bytes": 34221,
+          "sha256": "3420b780016f850e18f38e2eb99a3b08fd948957494e9bd4483c7d029c2e5e59"
+        }
+      ]
+    },
+    {
+      "project": "P04",
+      "questions": 72,
+      "fundamentals": 29,
+      "files": [
+        {
+          "path": "P04_医疗GSPO后训练_面试拷打与回答.md",
+          "bytes": 41162,
+          "sha256": "6910e091826ff4cfc3b53cf62952b2fbba8481a8443359690f2792ddb0500d21"
+        },
+        {
+          "path": "P04_医疗GSPO后训练_决策逻辑与宏观视角.md",
+          "bytes": 33994,
+          "sha256": "5546bf78d17bab8f27627bee8dc5a41f8e85800372c852b0a377837df82f697e"
+        }
+      ]
+    }
+  ],
+  "local_links_checked": 223,
+  "evidence_file_hashes_checked": 24,
+  "unique_corpus_source_documents": 20,
+  "resume_preserved": true,
+  "target_repositories_clean": true,
+  "worked_examples_checked": [
+    "GRPO group normalization reasoning",
+    "mixed probability",
+    "GSPO geometric ratio",
+    "RRF ordering",
+    "gated reward",
+    "DAG critical path"
+  ],
+  "not_executed": [
+    "target project code",
+    "model training",
+    "benchmark scoring",
+    "human retest",
+    "remote push"
+  ]
+}
